@@ -245,12 +245,27 @@ public class CustomerDashboardView {
             }
 
             if (productGrid.getChildren().isEmpty()) {
-                VBox emptyBox = new VBox(10);
-                emptyBox.setAlignment(Pos.CENTER);
-                emptyBox.setPadding(new Insets(60));
+                VBox emptyBox = new VBox(12);
+                emptyBox.getStyleClass().add("empty-state-box");
+                emptyBox.setPrefWidth(500);
+
+                Label emptyIcon = new Label("🔍");
+                emptyIcon.setStyle("-fx-font-size: 36px;");
+
                 Label emptyLabel = new Label("No products match your search or filter.");
-                emptyLabel.getStyleClass().add("text-muted");
-                emptyBox.getChildren().add(emptyLabel);
+                emptyLabel.getStyleClass().add("heading-md");
+
+                Label emptySub = new Label("Try adjusting your keyword or selecting 'All Categories'.");
+                emptySub.getStyleClass().add("subtitle");
+
+                Button resetBtn = new Button("Clear Search & Filters");
+                resetBtn.getStyleClass().add("btn-outline");
+                resetBtn.setOnAction(e -> {
+                    searchField.clear();
+                    categoryFilter.setValue("All Categories");
+                });
+
+                emptyBox.getChildren().addAll(emptyIcon, emptyLabel, emptySub, resetBtn);
                 productGrid.getChildren().add(emptyBox);
             }
         };

@@ -259,6 +259,9 @@ public class AdminDashboardView {
         nameLbl.getStyleClass().add("label-field");
         TextField nameIn = new TextField();
         nameIn.setPromptText("e.g. Wireless Ergonomic Mouse");
+        Label nameErr = new Label();
+        nameErr.getStyleClass().add("error-text");
+        nameErr.setVisible(false);
 
         Label catLbl = new Label("Category *");
         catLbl.getStyleClass().add("label-field");
@@ -276,11 +279,17 @@ public class AdminDashboardView {
 
         // Price & Stock
         HBox numRow = new HBox(10);
-        VBox priceBox = new VBox(4, new Label("Price ($) *"), new TextField("49.99"));
-        VBox stockBox = new VBox(4, new Label("Stock *"), new TextField("20"));
+        TextField priceField = new TextField("49.99");
+        TextField stockField = new TextField("20");
+        VBox priceBox = new VBox(4, new Label("Price ($) *"), priceField);
+        VBox stockBox = new VBox(4, new Label("Stock *"), stockField);
         HBox.setHgrow(priceBox, Priority.ALWAYS);
         HBox.setHgrow(stockBox, Priority.ALWAYS);
         numRow.getChildren().addAll(priceBox, stockBox);
+
+        Label numErr = new Label();
+        numErr.getStyleClass().add("error-text");
+        numErr.setVisible(false);
 
         // Subtype-specific dynamic field box
         VBox dynamicBox = new VBox(8);
@@ -313,25 +322,78 @@ public class AdminDashboardView {
             }
         });
 
+        // Clear errors as user types
+        nameIn.textProperty().addListener((obs, oldV, newV) -> {
+            nameErr.setVisible(false);
+            nameIn.getStyleClass().remove("input-error");
+        });
+        priceField.textProperty().addListener((obs, oldV, newV) -> {
+            numErr.setVisible(false);
+            priceField.getStyleClass().remove("input-error");
+        });
+        stockField.textProperty().addListener((obs, oldV, newV) -> {
+            numErr.setVisible(false);
+            stockField.getStyleClass().remove("input-error");
+        });
+
         Button addProductBtn = new Button("Add Product ➕");
         addProductBtn.getStyleClass().add("btn-primary");
         addProductBtn.setMaxWidth(Double.MAX_VALUE);
 
         addProductBtn.setOnAction(e -> {
+            String pName = nameIn.getText();
+            Category pCat = catCombo.getValue();
+            String pType = typeCombo.getValue();
+
+            boolean hasError = false;
+
+            if (pName == null || pName.trim().isEmpty()) {
+                nameErr.setText("Product name cannot be empty.");
+                nameErr.setVisible(true);
+                if (!nameIn.getStyleClass().contains("input-error")) nameIn.getStyleClass().add("input-error");
+                hasError = true;
+            }
+
+            double pPrice = 0;
+            int pStock = 0;
+
             try {
-                String pName = nameIn.getText();
-                Category pCat = catCombo.getValue();
-                double pPrice = Double.parseDouble(((TextField) priceBox.getChildren().get(1)).getText());
-                int pStock = Integer.parseInt(((TextField) stockBox.getChildren().get(1)).getText());
-                String pType = typeCombo.getValue();
+                pPrice = Double.parseDouble(priceField.getText().trim());
+                if (pPrice <= 0) {
+                    numErr.setText("Price must be greater than $0.00.");
+                    numErr.setVisible(true);
+                    if (!priceField.getStyleClass().contains("input-error")) priceField.getStyleClass().add("input-error");
+                    hasError = true;
+                }
+            } catch (NumberFormatException ex) {
+                numErr.setText("Please enter a valid numeric price.");
+                numErr.setVisible(true);
+                if (!priceField.getStyleClass().contains("input-error")) priceField.getStyleClass().add("input-error");
+                hasError = true;
+            }
 
-                if (pPrice <= 0) throw new IllegalArgumentException("Price must be greater than 0.");
-                if (pStock < 0) throw new IllegalArgumentException("Stock cannot be negative.");
+            try {
+                pStock = Integer.parseInt(stockField.getText().trim());
+                if (pStock < 0) {
+                    numErr.setText("Stock level cannot be negative.");
+                    numErr.setVisible(true);
+                    if (!stockField.getStyleClass().contains("input-error")) stockField.getStyleClass().add("input-error");
+                    hasError = true;
+                }
+            } catch (NumberFormatException ex) {
+                numErr.setText("Please enter a valid integer for stock.");
+                numErr.setVisible(true);
+                if (!stockField.getStyleClass().contains("input-error")) stockField.getStyleClass().add("input-error");
+                hasError = true;
+            }
 
+            if (hasError) return;
+
+            try {
                 Product newProduct;
                 if ("Electronics".equals(pType)) {
                     String brand = field1.getText();
-                    int warranty = Integer.parseInt(field2.getText());
+                    int warranty = Integer.parseInt(field2.getText().trim());
                     newProduct = new Electronics(pName, pPrice, pStock, pCat, brand, warranty);
                 } else if ("Clothing".equals(pType)) {
                     String size = field1.getText();
@@ -343,22 +405,20 @@ public class AdminDashboardView {
                 }
 
                 app.getProductService().addProduct(newProduct);
-                GuiUtils.showInfo("Product Added", "Successfully added '" + pName + "' to the catalog.");
+                GuiUtils.showInfo("Product Added", "Successfully added '" + pName + "' to catalog.");
                 table.setItems(FXCollections.observableArrayList(app.getProductService().getAllProducts()));
 
                 nameIn.clear();
-            } catch (NumberFormatException ex) {
-                GuiUtils.showError("Invalid Input", "Please enter valid numeric values for price and stock.");
             } catch (Exception ex) {
                 GuiUtils.showError("Validation Error", ex.getMessage());
             }
         });
 
         addFormCard.getChildren().addAll(
-                formHeader, nameLbl, nameIn,
+                formHeader, nameLbl, nameIn, nameErr,
                 catLbl, catCombo,
                 typeLbl, typeCombo,
-                numRow, dynamicBox,
+                numRow, numErr, dynamicBox,
                 addProductBtn
         );
 

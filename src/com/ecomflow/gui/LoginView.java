@@ -13,7 +13,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
@@ -34,7 +33,7 @@ public class LoginView {
         rootPane.setPadding(new Insets(40));
 
         // Center Login Card
-        VBox card = new VBox(16);
+        VBox card = new VBox(14);
         card.getStyleClass().add("card");
         card.setMaxWidth(440);
         card.setAlignment(Pos.CENTER_LEFT);
@@ -51,16 +50,37 @@ public class LoginView {
 
         header.getChildren().addAll(brand, subtitle);
 
-        // Form Fields
+        // Email Form Group
+        VBox emailGroup = new VBox(4);
         Label emailLabel = new Label("Email Address");
         emailLabel.getStyleClass().add("label-field");
         TextField emailField = new TextField();
         emailField.setPromptText("e.g. alice@ecomflow.com");
+        Label emailErr = new Label();
+        emailErr.getStyleClass().add("error-text");
+        emailErr.setVisible(false);
+        emailGroup.getChildren().addAll(emailLabel, emailField, emailErr);
 
+        // Password Form Group
+        VBox passGroup = new VBox(4);
         Label passLabel = new Label("Password");
         passLabel.getStyleClass().add("label-field");
         PasswordField passField = new PasswordField();
         passField.setPromptText("Enter your password");
+        Label passErr = new Label();
+        passErr.getStyleClass().add("error-text");
+        passErr.setVisible(false);
+        passGroup.getChildren().addAll(passLabel, passField, passErr);
+
+        // Clear errors as user types
+        emailField.textProperty().addListener((obs, oldV, newV) -> {
+            emailErr.setVisible(false);
+            emailField.getStyleClass().remove("input-error");
+        });
+        passField.textProperty().addListener((obs, oldV, newV) -> {
+            passErr.setVisible(false);
+            passField.getStyleClass().remove("input-error");
+        });
 
         // Action Buttons
         Button loginBtn = new Button("Sign In");
@@ -87,6 +107,8 @@ public class LoginView {
         fillCustomer.setOnAction(e -> {
             emailField.setText("alice@ecomflow.com");
             passField.setText("pass123");
+            emailErr.setVisible(false);
+            passErr.setVisible(false);
         });
 
         Button fillAdmin = new Button("Admin Demo");
@@ -94,23 +116,48 @@ public class LoginView {
         fillAdmin.setOnAction(e -> {
             emailField.setText("admin@ecomflow.com");
             passField.setText("adminPass");
+            emailErr.setVisible(false);
+            passErr.setVisible(false);
         });
 
         demoChips.getChildren().addAll(fillCustomer, fillAdmin);
         demoBox.getChildren().addAll(demoLabel, demoChips);
 
-        // Event Handlers
+        // Event Handlers with Inline Validation Check
         loginBtn.setOnAction(e -> {
             String email = emailField.getText();
             String password = passField.getText();
+
+            boolean hasError = false;
+
+            if (email == null || email.trim().isEmpty()) {
+                emailErr.setText("Please enter your email address.");
+                emailErr.setVisible(true);
+                if (!emailField.getStyleClass().contains("input-error")) emailField.getStyleClass().add("input-error");
+                hasError = true;
+            } else if (!email.contains("@")) {
+                emailErr.setText("Please enter a valid email containing '@'.");
+                emailErr.setVisible(true);
+                if (!emailField.getStyleClass().contains("input-error")) emailField.getStyleClass().add("input-error");
+                hasError = true;
+            }
+
+            if (password == null || password.trim().isEmpty()) {
+                passErr.setText("Please enter your password.");
+                passErr.setVisible(true);
+                if (!passField.getStyleClass().contains("input-error")) passField.getStyleClass().add("input-error");
+                hasError = true;
+            }
+
+            if (hasError) return;
 
             try {
                 User user = authService.login(email, password);
                 app.handleUserNavigation(user);
             } catch (InvalidLoginException ex) {
-                showAlert(Alert.AlertType.ERROR, "Authentication Failed", ex.getMessage());
+                GuiUtils.showError("Authentication Failed", ex.getMessage());
             } catch (Exception ex) {
-                showAlert(Alert.AlertType.ERROR, "Error", "An unexpected error occurred: " + ex.getMessage());
+                GuiUtils.showError("Error", "An unexpected error occurred: " + ex.getMessage());
             }
         });
 
@@ -119,22 +166,14 @@ public class LoginView {
 
         card.getChildren().addAll(
                 header,
-                emailLabel, emailField,
-                passLabel, passField,
+                emailGroup,
+                passGroup,
                 loginBtn, registerBtn,
                 demoBox
         );
 
         rootPane.getChildren().add(card);
         StackPane.setAlignment(card, Pos.CENTER);
-    }
-
-    private void showAlert(Alert.AlertType type, String title, String message) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
     }
 
     public Parent getView() {

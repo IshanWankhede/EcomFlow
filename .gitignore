@@ -57,3 +57,4 @@ $RECYCLE.BIN/
 
 # ===== Antigravity / agent scratch files (if any get generated) =====
 .antigravity/
+PROMPTS.md

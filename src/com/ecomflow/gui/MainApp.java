@@ -135,37 +135,8 @@ public class MainApp extends Application {
     }
 
     public void showAdminDashboard(Admin admin) {
-        // Interim screen for Phase 10; expanded in Phase 12
-        VBox root = new VBox(20);
-        root.setAlignment(Pos.CENTER);
-        root.getStyleClass().addAll("app-container", "card");
-        root.setStyle("-fx-max-width: 600px; -fx-max-height: 400px;");
-
-        Label title = new Label("Administrator Dashboard");
-        title.getStyleClass().add("heading-lg");
-
-        Label badge = new Label("ROLE: SYSTEM ADMINISTRATOR");
-        badge.getStyleClass().add("badge-admin");
-
-        Label welcome = new Label("Logged in as: " + admin.getName() + " (" + admin.getEmail() + ")");
-        welcome.getStyleClass().add("subtitle");
-
-        Label note = new Label("Phase 10: Routing verified. Full catalog & order management UI builds in Phase 12.");
-        note.getStyleClass().add("text-muted");
-
-        Button logoutBtn = new Button("Logout");
-        logoutBtn.getStyleClass().add("btn-outline");
-        logoutBtn.setOnAction(e -> {
-            authService.logout(admin);
-            showLoginView();
-        });
-
-        root.getChildren().addAll(title, badge, welcome, note, logoutBtn);
-
-        VBox container = new VBox(root);
-        container.setAlignment(Pos.CENTER);
-        container.getStyleClass().add("app-container");
-        setRoot(container);
+        AdminDashboardView adminView = new AdminDashboardView(this, admin);
+        setRoot(adminView.getView());
     }
 
     public void handleUserNavigation(User user) {

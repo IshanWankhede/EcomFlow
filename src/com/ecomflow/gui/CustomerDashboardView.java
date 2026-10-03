@@ -642,7 +642,13 @@ public class CustomerDashboardView {
         totalR.getChildren().addAll(totL, sp3, totV);
 
         applyCouponBtn.setOnAction(e -> {
-            activeCoupon = couponField.getText().trim();
+            String entered = couponField.getText().trim();
+            if (!entered.isEmpty() && !app.getDiscountService().isValidCoupon(entered)) {
+                GuiUtils.showError("Invalid Coupon", "Coupon code '" + entered + "' is unrecognized. Available promo codes: SAVE10 (10% off), SAVE20 (20% off), FLAT50 ($50 off), FLAT100 ($100 off).");
+                activeCoupon = "";
+            } else {
+                activeCoupon = entered;
+            }
             showCheckoutView();
         });
 
@@ -652,6 +658,14 @@ public class CustomerDashboardView {
         placeOrderBtn.setMaxWidth(Double.MAX_VALUE);
 
         placeOrderBtn.setOnAction(e -> {
+            // Inline validation: pincode format
+            String enteredPin = pinField.getText().trim();
+            if (!enteredPin.isEmpty() && !Address.isValidPincode(enteredPin)) {
+                GuiUtils.showError("Invalid Pincode",
+                        "Pincode '" + enteredPin + "' is invalid. Please enter 3–10 alphanumeric characters.");
+                return;
+            }
+
             Address shippingAddr = new Address(
                     streetField.getText(), cityField.getText(),
                     stateField.getText(), pinField.getText(),

@@ -10,6 +10,12 @@ public class CartService {
         if (cart == null) {
             throw new IllegalArgumentException("Cart cannot be null.");
         }
+        if (product == null) {
+            throw new IllegalArgumentException("Product cannot be null.");
+        }
+        if (product.getStock() <= 0) {
+            throw new IllegalArgumentException("Cannot add '" + product.getName() + "' to cart: product is out of stock.");
+        }
         cart.addItem(product, quantity);
     }
 

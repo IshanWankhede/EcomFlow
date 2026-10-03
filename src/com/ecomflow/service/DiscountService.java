@@ -41,6 +41,13 @@ public class DiscountService {
         return (discount != null) ? discount : new NoDiscount();
     }
 
+    public boolean isValidCoupon(String couponCode) {
+        if (couponCode == null || couponCode.trim().isEmpty()) {
+            return false;
+        }
+        return promoCodes.containsKey(couponCode.toUpperCase().trim());
+    }
+
     public double calculateDiscountAmount(String couponCode, double subtotal) {
         Discountable strategy = resolveDiscount(couponCode);
         return strategy.calculateDiscount(subtotal);

@@ -55,6 +55,13 @@ public class Address {
         this.country = (country != null) ? country.trim() : "";
     }
 
+    public static boolean isValidPincode(String pincode) {
+        if (pincode == null || pincode.trim().isEmpty()) {
+            return false;
+        }
+        return pincode.trim().matches("^[0-9A-Za-z\\s\\-]{3,10}$");
+    }
+
     @Override
     public String toString() {
         return street + ", " + city + ", " + state + " - " + pincode + ", " + country;

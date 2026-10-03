@@ -1,3 +1,18 @@
+/**
+ * Screenshot capture utility.
+ *
+ * NOTE: This class requires the 'javafx.swing' module in addition to 'javafx.controls'.
+ * Compile and run it SEPARATELY using:
+ *
+ *   javac --module-path lib\javafx-sdk-21.0.12\lib --add-modules javafx.controls,javafx.swing
+ *         -cp out -d out src\com\ecomflow\CaptureScreenshots.java
+ *
+ *   java  --module-path lib\javafx-sdk-21.0.12\lib --add-modules javafx.controls,javafx.swing
+ *         -cp "out;resources" com.ecomflow.CaptureScreenshots
+ *
+ * The main application (Main.java) does NOT depend on javafx.swing and should be
+ * compiled/run with --add-modules javafx.controls only.
+ */
 package com.ecomflow;
 
 import java.io.File;

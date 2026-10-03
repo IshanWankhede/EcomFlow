@@ -181,6 +181,13 @@ public class RegisterView {
                 hasError = true;
             }
 
+            String enteredPin = pinField.getText().trim();
+            if (!enteredPin.isEmpty() && !Address.isValidPincode(enteredPin)) {
+                GuiUtils.showError("Invalid Pincode", "Pincode '" + enteredPin + "' is invalid. Please enter 3-10 alphanumeric characters.");
+                if (!pinField.getStyleClass().contains("input-error")) pinField.getStyleClass().add("input-error");
+                hasError = true;
+            }
+
             if (hasError) return;
 
             Address address = new Address(

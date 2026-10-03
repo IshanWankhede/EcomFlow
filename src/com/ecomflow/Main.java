@@ -1,5 +1,8 @@
 package com.ecomflow;
 
+import com.ecomflow.exceptions.InsufficientStockException;
+import com.ecomflow.exceptions.InvalidLoginException;
+import com.ecomflow.exceptions.ProductNotFoundException;
 import com.ecomflow.model.Address;
 import com.ecomflow.model.Category;
 import com.ecomflow.model.Customer;
@@ -7,6 +10,9 @@ import com.ecomflow.model.Electronics;
 import com.ecomflow.model.Product;
 import com.ecomflow.model.User;
 import com.ecomflow.repository.DataStore;
+import com.ecomflow.service.AuthenticationService;
+import com.ecomflow.service.InventoryService;
+import com.ecomflow.service.ProductService;
 
 public class Main {
     public static void main(String[] args) {
@@ -15,44 +21,68 @@ public class Main {
         System.out.println("=================================================");
         System.out.println();
 
-        // Phase 6 Test: In-Memory DataStore CRUD Operations
-        System.out.println("--- Phase 6 Test: Repository Layer (DataStore) ---");
+        System.out.println("--- Phase 7 Test: Service Layer (Identity, Catalog, Inventory) ---");
         DataStore dataStore = new DataStore();
+        AuthenticationService authService = new AuthenticationService(dataStore);
+        ProductService productService = new ProductService(dataStore);
+        InventoryService inventoryService = new InventoryService(dataStore);
 
-        // 1. Add Category & Product
-        Category gadgets = new Category(101, "Smart Gadgets");
-        dataStore.addCategory(gadgets);
+        // 1. Register Users via AuthenticationService
+        System.out.println("[Step 1: User Registration]");
+        Address address = new Address("10 Downing Street", "London", "Greater London", "SW1A 2AA", "UK");
+        Customer customer = authService.registerCustomer("Diana Prince", "diana@amazon.com", "lasso123", "+44 20 7946 0991", address);
+        System.out.println("Registered Customer: " + customer.getName() + " (" + customer.getEmail() + ")");
 
-        Product smartwatch = new Electronics("Ultra Smartwatch Pro", 249.99, 15, gadgets, "TechTime", 18);
-        dataStore.addProduct(smartwatch);
+        User admin = authService.registerAdmin("Bruce Wayne", "admin@waynecorp.com", "batmanPass", "+1 555 0199");
+        System.out.println("Registered Admin: " + admin.getName() + " (" + admin.getEmail() + ")");
+        System.out.println();
 
-        // 2. Add Customer
-        Address address = new Address("742 Evergreen Terrace", "Springfield", "OR", "97477", "USA");
-        Customer customer = new Customer("Homer Simpson", "homer@simpson.org", "donut123", "555-7334", address);
-        dataStore.addUser(customer);
+        // 2. Login as Customer & Admin
+        System.out.println("[Step 2: Authentication & Login Verification]");
+        try {
+            User loggedCustomer = authService.login("diana@amazon.com", "lasso123");
+            System.out.println("Customer login successful! Logged in as: " + loggedCustomer.getName());
 
-        // 3. Retrieve User by Email key (O(1) lookup)
-        User retrievedUser = dataStore.getUserByEmail("homer@simpson.org");
-        System.out.println("[DataStore Lookup] Retrieved User by email 'homer@simpson.org':");
-        if (retrievedUser != null) {
-            retrievedUser.displayProfile();
-        } else {
-            System.out.println("User not found!");
+            User loggedAdmin = authService.login("admin@waynecorp.com", "batmanPass");
+            System.out.println("Admin login successful! Logged in as: " + loggedAdmin.getName());
+        } catch (InvalidLoginException e) {
+            System.err.println("Caught Login Error: " + e.getMessage());
+        }
+
+        // Test Invalid Login
+        try {
+            System.out.println("Attempting invalid login with wrong password...");
+            authService.login("diana@amazon.com", "wrongPassword");
+        } catch (InvalidLoginException e) {
+            System.out.println(">>> Gracefully caught expected InvalidLoginException: " + e.getMessage());
         }
         System.out.println();
 
-        // 4. Retrieve Product by ID key (O(1) lookup)
-        Product retrievedProduct = dataStore.getProductById(smartwatch.getProductId());
-        System.out.println("[DataStore Lookup] Retrieved Product by ID #" + smartwatch.getProductId() + ":");
-        if (retrievedProduct != null) {
-            retrievedProduct.displayDetails();
-        } else {
-            System.out.println("Product not found!");
-        }
+        // 3. Add Product via ProductService
+        System.out.println("[Step 3: Catalog Management via ProductService]");
+        Category electronics = new Category(201, "Electronics");
+        dataStore.addCategory(electronics);
 
-        // 5. Check Category uniqueness check
+        Product gamingLaptop = new Electronics("Pro Gaming Laptop 16\"", 1499.00, 5, electronics, "ApexTech", 24);
+        productService.addProduct(gamingLaptop);
+        System.out.printf("Added '%s' with initial stock of %d units.%n", gamingLaptop.getName(), gamingLaptop.getStock());
         System.out.println();
-        System.out.println("Is 'Smart Gadgets' category registered? " + dataStore.isCategoryNameTaken("smart gadgets"));
-        System.out.println("Is 'Furniture' category registered? " + dataStore.isCategoryNameTaken("furniture"));
+
+        // 4. Test Inventory Management and InsufficientStockException
+        System.out.println("[Step 4: Inventory Deduction & InsufficientStockException Check]");
+        try {
+            System.out.println("Attempting legitimate deduction of 2 units...");
+            inventoryService.removeStock(gamingLaptop.getProductId(), 2);
+            System.out.println("Deduction successful. Remaining stock: " + gamingLaptop.getStock() + " units.");
+
+            System.out.println("Attempting illegal deduction of 10 units (exceeding available 3 units)...");
+            inventoryService.removeStock(gamingLaptop.getProductId(), 10);
+            System.out.println("This line should never execute!");
+        } catch (ProductNotFoundException e) {
+            System.err.println("Product lookup error: " + e.getMessage());
+        } catch (InsufficientStockException e) {
+            System.out.println(">>> Gracefully caught expected InsufficientStockException: " + e.getMessage());
+            System.out.println(">>> Confirmed: Stock remains safely unchanged at: " + gamingLaptop.getStock() + " units.");
+        }
     }
 }

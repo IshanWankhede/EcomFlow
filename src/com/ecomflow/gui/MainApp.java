@@ -130,34 +130,8 @@ public class MainApp extends Application {
     }
 
     public void showCustomerDashboard(Customer customer) {
-        // Interim screen for Phase 10; expanded in Phase 11
-        VBox root = new VBox(20);
-        root.setAlignment(Pos.CENTER);
-        root.getStyleClass().addAll("app-container", "card");
-        root.setStyle("-fx-max-width: 600px; -fx-max-height: 400px;");
-
-        Label title = new Label("Customer Dashboard");
-        title.getStyleClass().add("heading-lg");
-
-        Label welcome = new Label("Welcome back, " + customer.getName() + " (" + customer.getEmail() + ")");
-        welcome.getStyleClass().add("subtitle");
-
-        Label note = new Label("Phase 10: Routing verified. Full customer catalog & cart UI builds in Phase 11.");
-        note.getStyleClass().add("text-muted");
-
-        Button logoutBtn = new Button("Logout");
-        logoutBtn.getStyleClass().add("btn-outline");
-        logoutBtn.setOnAction(e -> {
-            authService.logout(customer);
-            showLoginView();
-        });
-
-        root.getChildren().addAll(title, welcome, note, logoutBtn);
-
-        VBox container = new VBox(root);
-        container.setAlignment(Pos.CENTER);
-        container.getStyleClass().add("app-container");
-        setRoot(container);
+        CustomerDashboardView customerView = new CustomerDashboardView(this, customer);
+        setRoot(customerView.getView());
     }
 
     public void showAdminDashboard(Admin admin) {

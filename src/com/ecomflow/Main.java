@@ -1,18 +1,19 @@
 package com.ecomflow;
 
-import com.ecomflow.exceptions.InsufficientStockException;
-import com.ecomflow.exceptions.InvalidLoginException;
-import com.ecomflow.exceptions.ProductNotFoundException;
+import com.ecomflow.exceptions.EmptyCartException;
+import com.ecomflow.exceptions.InvalidPaymentException;
+import com.ecomflow.interfaces.Discountable;
+import com.ecomflow.interfaces.Payment;
 import com.ecomflow.model.Address;
+import com.ecomflow.model.Cart;
 import com.ecomflow.model.Category;
+import com.ecomflow.model.Clothing;
 import com.ecomflow.model.Customer;
 import com.ecomflow.model.Electronics;
 import com.ecomflow.model.Product;
-import com.ecomflow.model.User;
-import com.ecomflow.repository.DataStore;
-import com.ecomflow.service.AuthenticationService;
-import com.ecomflow.service.InventoryService;
-import com.ecomflow.service.ProductService;
+import com.ecomflow.service.CartService;
+import com.ecomflow.service.DiscountService;
+import com.ecomflow.service.PaymentService;
 
 public class Main {
     public static void main(String[] args) {
@@ -21,68 +22,73 @@ public class Main {
         System.out.println("=================================================");
         System.out.println();
 
-        System.out.println("--- Phase 7 Test: Service Layer (Identity, Catalog, Inventory) ---");
-        DataStore dataStore = new DataStore();
-        AuthenticationService authService = new AuthenticationService(dataStore);
-        ProductService productService = new ProductService(dataStore);
-        InventoryService inventoryService = new InventoryService(dataStore);
+        System.out.println("--- Phase 8 Test: Cart, Discount, and Payment Services ---");
+        CartService cartService = new CartService();
+        DiscountService discountService = new DiscountService();
+        PaymentService paymentService = new PaymentService();
 
-        // 1. Register Users via AuthenticationService
-        System.out.println("[Step 1: User Registration]");
-        Address address = new Address("10 Downing Street", "London", "Greater London", "SW1A 2AA", "UK");
-        Customer customer = authService.registerCustomer("Diana Prince", "diana@amazon.com", "lasso123", "+44 20 7946 0991", address);
-        System.out.println("Registered Customer: " + customer.getName() + " (" + customer.getEmail() + ")");
+        // 1. Setup Customer & Catalog
+        Address address = new Address("221B Baker Street", "London", "Greater London", "NW1 6XE", "UK");
+        Customer customer = new Customer("John Watson", "watson@bakerstreet.com", "sherlock221", "+44 20 7224 3688", address);
+        Cart cart = customer.getCart();
 
-        User admin = authService.registerAdmin("Bruce Wayne", "admin@waynecorp.com", "batmanPass", "+1 555 0199");
-        System.out.println("Registered Admin: " + admin.getName() + " (" + admin.getEmail() + ")");
+        Category electronics = new Category(101, "Electronics");
+        Category clothing = new Category(102, "Clothing");
+
+        Product mechanicalKeyboard = new Electronics("RGB Mechanical Keyboard", 129.99, 10, electronics, "Keychron", 12);
+        Product hoodie = new Clothing("Cozy Fleece Hoodie", 69.99, 25, clothing, "XL", "Cotton/Poly");
+
+        // 2. Add items to cart via CartService
+        System.out.println("[Step 1: Adding Items to Cart via CartService]");
+        cartService.addItem(cart, mechanicalKeyboard, 1);
+        cartService.addItem(cart, hoodie, 2);
+
+        double cartSubtotal = cartService.getTotal(cart);
+        System.out.printf("Cart Subtotal (%d unique items): $%.2f%n", cart.getItems().size(), cartSubtotal);
         System.out.println();
 
-        // 2. Login as Customer & Admin
-        System.out.println("[Step 2: Authentication & Login Verification]");
-        try {
-            User loggedCustomer = authService.login("diana@amazon.com", "lasso123");
-            System.out.println("Customer login successful! Logged in as: " + loggedCustomer.getName());
+        // 3. Apply Discount via DiscountService
+        System.out.println("[Step 2: Resolving & Applying Discount Strategy]");
+        String promoCode = "SAVE10";
+        Discountable discountStrategy = discountService.resolveDiscount(promoCode);
+        double discountAmount = discountStrategy.calculateDiscount(cartSubtotal);
+        double payableAmount = cartSubtotal - discountAmount;
 
-            User loggedAdmin = authService.login("admin@waynecorp.com", "batmanPass");
-            System.out.println("Admin login successful! Logged in as: " + loggedAdmin.getName());
-        } catch (InvalidLoginException e) {
-            System.err.println("Caught Login Error: " + e.getMessage());
+        System.out.println("Applied Promo Code  : " + promoCode + " (" + discountStrategy + ")");
+        System.out.printf("Discount Deducted   : -$%.2f%n", discountAmount);
+        System.out.printf("Final Payable Total : $%.2f%n", payableAmount);
+        System.out.println();
+
+        // 4. Resolve & Process Payment via PaymentService
+        System.out.println("[Step 3: Resolving & Processing Valid Payment Method]");
+        try {
+            Payment payment = paymentService.resolvePayment("UPI");
+            System.out.println("Resolved Payment Strategy: " + payment.getClass().getSimpleName());
+            paymentService.processPayment(payment, payableAmount);
+        } catch (InvalidPaymentException e) {
+            System.err.println("Payment error: " + e.getMessage());
         }
-
-        // Test Invalid Login
-        try {
-            System.out.println("Attempting invalid login with wrong password...");
-            authService.login("diana@amazon.com", "wrongPassword");
-        } catch (InvalidLoginException e) {
-            System.out.println(">>> Gracefully caught expected InvalidLoginException: " + e.getMessage());
-        }
         System.out.println();
 
-        // 3. Add Product via ProductService
-        System.out.println("[Step 3: Catalog Management via ProductService]");
-        Category electronics = new Category(201, "Electronics");
-        dataStore.addCategory(electronics);
-
-        Product gamingLaptop = new Electronics("Pro Gaming Laptop 16\"", 1499.00, 5, electronics, "ApexTech", 24);
-        productService.addProduct(gamingLaptop);
-        System.out.printf("Added '%s' with initial stock of %d units.%n", gamingLaptop.getName(), gamingLaptop.getStock());
-        System.out.println();
-
-        // 4. Test Inventory Management and InsufficientStockException
-        System.out.println("[Step 4: Inventory Deduction & InsufficientStockException Check]");
+        // 5. Test Invalid Payment Exception Handling
+        System.out.println("[Step 4: Testing Invalid Payment Exception Handling]");
         try {
-            System.out.println("Attempting legitimate deduction of 2 units...");
-            inventoryService.removeStock(gamingLaptop.getProductId(), 2);
-            System.out.println("Deduction successful. Remaining stock: " + gamingLaptop.getStock() + " units.");
-
-            System.out.println("Attempting illegal deduction of 10 units (exceeding available 3 units)...");
-            inventoryService.removeStock(gamingLaptop.getProductId(), 10);
+            System.out.println("Attempting payment with unsupported method 'BITCOIN'...");
+            paymentService.resolvePayment("BITCOIN");
             System.out.println("This line should never execute!");
-        } catch (ProductNotFoundException e) {
-            System.err.println("Product lookup error: " + e.getMessage());
-        } catch (InsufficientStockException e) {
-            System.out.println(">>> Gracefully caught expected InsufficientStockException: " + e.getMessage());
-            System.out.println(">>> Confirmed: Stock remains safely unchanged at: " + gamingLaptop.getStock() + " units.");
+        } catch (InvalidPaymentException e) {
+            System.out.println(">>> Gracefully caught expected InvalidPaymentException: " + e.getMessage());
+        }
+        System.out.println();
+
+        // 6. Test Empty Cart Validation
+        System.out.println("[Step 5: Testing Empty Cart Validation]");
+        Cart emptyCart = new Cart(customer);
+        try {
+            System.out.println("Validating empty cart for checkout...");
+            cartService.validateNotEmpty(emptyCart);
+        } catch (EmptyCartException e) {
+            System.out.println(">>> Gracefully caught expected EmptyCartException: " + e.getMessage());
         }
     }
 }

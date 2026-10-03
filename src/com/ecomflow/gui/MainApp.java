@@ -1,7 +1,6 @@
 package com.ecomflow.gui;
 
 import java.io.File;
-import java.time.LocalDate;
 
 import com.ecomflow.model.Address;
 import com.ecomflow.model.Admin;
@@ -64,31 +63,38 @@ public class MainApp extends Application {
     }
 
     private void seedInitialData() {
-        // Seed Users
-        Address defaultAddr = new Address("42 Tech Boulevard", "Bengaluru", "Karnataka", "560001", "India");
-        authService.registerCustomer("Alice Johnson", "alice@ecomflow.com", "pass123", "+91 9876543210", defaultAddr);
+        // ── Demo Users ────────────────────────────────────────────────────────────
+        Address aliceAddr = new Address("42 Tech Boulevard", "Bengaluru", "Karnataka", "560001", "India");
+        authService.registerCustomer("Alice Johnson", "alice@ecomflow.com", "pass123", "+91 9876543210", aliceAddr);
+
+        Address bobAddr = new Address("7 Marine Drive", "Mumbai", "Maharashtra", "400001", "India");
+        authService.registerCustomer("Bob Smith", "bob@ecomflow.com", "pass456", "+91 9012345678", bobAddr);
+
         authService.registerAdmin("System Administrator", "admin@ecomflow.com", "adminPass", "+91 9123456780");
 
-        // Seed Categories
+        // ── Categories ────────────────────────────────────────────────────────────
         Category catElectronics = new Category(101, "Electronics");
-        Category catClothing = new Category(102, "Apparel");
-        Category catGrocery = new Category(103, "Groceries");
+        Category catClothing    = new Category(102, "Apparel");
+        Category catGrocery     = new Category(103, "Groceries");
         dataStore.addCategory(catElectronics);
         dataStore.addCategory(catClothing);
         dataStore.addCategory(catGrocery);
 
-        // Seed Products
+        // ── Products — matches README.md sample catalog ────────────────────────────
+        // Electronics
         productService.addProduct(new Electronics(5001, "Noise-Cancelling Headphones", 199.99, 15, catElectronics, "SoundMax", 24));
-        productService.addProduct(new Electronics(5002, "Pro Smartphone 5G", 799.99, 12, catElectronics, "ApexMobile", 12));
-        productService.addProduct(new Electronics(5003, "Ultra Slim Laptop 16\"", 1299.99, 8, catElectronics, "ProTech", 36));
-        
-        productService.addProduct(new Clothing(5004, "Winter Fleece Jacket", 89.99, 35, catClothing, "L", "Polyester"));
-        productService.addProduct(new Clothing(5005, "Classic Cotton T-Shirt", 24.99, 50, catClothing, "M", "100% Cotton"));
-        productService.addProduct(new Clothing(5006, "Slim Fit Denim Jeans", 69.99, 40, catClothing, "32", "Denim"));
+        productService.addProduct(new Electronics(5002, "Pro Smartphone 5G",           799.99, 12, catElectronics, "ApexMobile", 12));
+        productService.addProduct(new Electronics(5003, "Ultra Slim Laptop 16\"",      1299.99,  8, catElectronics, "ProTech", 36));
 
-        productService.addProduct(new Grocery(5007, "Organic Almond Milk", 4.99, 30, catGrocery, LocalDate.now().plusDays(10)));
-        productService.addProduct(new Grocery(5008, "Royal Basmati Rice 5kg", 18.50, 45, catGrocery, LocalDate.now().plusMonths(6)));
-        productService.addProduct(new Grocery(5009, "Artisan Coffee Beans 500g", 14.99, 25, catGrocery, LocalDate.now().plusMonths(4)));
+        // Clothing
+        productService.addProduct(new Clothing(5004, "Winter Fleece Jacket",    89.99, 35, catClothing, "L",  "Polyester"));
+        productService.addProduct(new Clothing(5005, "Classic Cotton T-Shirt",  24.99, 50, catClothing, "M",  "100% Cotton"));
+        productService.addProduct(new Clothing(5006, "Slim Fit Denim Jeans",    69.99, 40, catClothing, "32", "Denim"));
+
+        // Grocery
+        productService.addProduct(new Grocery(5007, "Organic Almond Milk 1L",    4.99, 30, catGrocery, java.time.LocalDate.now().plusDays(10)));
+        productService.addProduct(new Grocery(5008, "Royal Basmati Rice 5 kg",  18.50, 45, catGrocery, java.time.LocalDate.now().plusMonths(6)));
+        productService.addProduct(new Grocery(5009, "Artisan Coffee Beans 500g",14.99, 25, catGrocery, java.time.LocalDate.now().plusMonths(4)));
     }
 
     @Override

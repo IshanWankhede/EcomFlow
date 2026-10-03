@@ -32,6 +32,16 @@ public abstract class User {
         System.out.println("User " + name + " (" + email + ") logged out.");
     }
 
+    /**
+     * Protected helper — returns a compact identity string for use by subclass
+     * displayProfile() implementations. Demonstrates the {@code protected} access
+     * modifier: accessible within this class, its subclasses (Customer, Admin),
+     * and the same package, but NOT from unrelated external classes.
+     */
+    protected String getProfileSummary() {
+        return String.format("ID: %d | %s <%s>", userId, name, email);
+    }
+
     public void displayProfile() {
         System.out.println("----------------------------------------");
         System.out.println("User ID  : " + userId);

@@ -678,10 +678,13 @@ Typing the module-path flags by hand every time gets old fast — most people co
 
 > ⚠️ These are **demo credentials for local testing only** — no real passwords or sensitive data are stored or transmitted.
 
-| Role | Email | Password |
-|------|-------|----------|
-| Admin | `admin@ecomflow.com` | *(demo password — set locally)* |
-| Customer | `customer@ecomflow.com` | *(demo password — set locally)* |
+| Role | Name | Email | Password |
+|------|------|-------|----------|
+| Admin | System Administrator | `admin@ecomflow.com` | `adminPass` |
+| Customer | Alice Johnson | `alice@ecomflow.com` | `pass123` |
+| Customer | Bob Smith | `bob@ecomflow.com` | `pass456` |
+
+> 💡 Use the **"Customer Demo"** / **"Admin Demo"** quick-fill buttons on the Login screen to populate credentials instantly.
 
 ### Sample Product Catalog
 

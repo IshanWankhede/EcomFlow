@@ -24,10 +24,8 @@ public class Customer extends User {
     @Override
     public void displayProfile() {
         System.out.println("================ [CUSTOMER PROFILE] ================");
-        System.out.println("User ID      : " + getUserId());
+        System.out.println("Summary      : " + getProfileSummary()); // protected method from User
         System.out.println("Role         : CUSTOMER");
-        System.out.println("Name         : " + getName());
-        System.out.println("Email        : " + getEmail());
         System.out.println("Phone        : " + getPhone());
         System.out.println("Address      : " + (address != null ? address.toString() : "Not provided"));
         System.out.println("Cart Items   : " + (cart != null ? cart.getItems().size() : 0));

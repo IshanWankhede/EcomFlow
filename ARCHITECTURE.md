@@ -9,7 +9,7 @@ This document expands on the architecture summarized in [`README.md`](./README.m
 EcomFlow is architected around two priorities, in order:
 
 1. **Clarity of OOP demonstration** — every class exists to make a specific OOP concept visible and testable.
-2. **Realistic layering** — despite being an academic project, the codebase follows a layered structure (`ui → service → model/repository`) so business logic never lives inside entity classes or console menus.
+2. **Realistic layering** — despite being an academic project, the codebase follows a layered structure (`gui → service → model/repository`) so business logic never lives inside entity classes or GUI screens.
 
 The result is a system that is small enough to fully understand in one sitting, but structured the way a real (if simplified) application would be.
 
@@ -29,8 +29,8 @@ The result is a system that is small enough to fully understand in one sitting, 
 | 8 | Payment Module | Pluggable payment strategies (UPI, Card, COD) |
 | 9 | Discount/Coupon Module | Pluggable discount strategies applied at checkout |
 | 10 | Invoice Module | Generating and displaying a post-checkout invoice |
-| 11 | Admin Module | Admin-only console flows and operations |
-| 12 | Customer Module | Customer-only console flows and operations |
+| 11 | Admin Module | Admin-only JavaFX GUI flows and operations |
+| 12 | Customer Module | Customer-only JavaFX GUI flows and operations |
 
 Each module maps to one or more classes in the `model`, `service`, `payment`, or `discount` packages — there is a deliberate 1:1 traceability between "module" (a functional concern) and "package/class" (a code artifact).
 
@@ -136,7 +136,7 @@ EcomFlow uses **in-memory Java Collections** instead of a database for Version 1
 - Password must not be empty.
 - An invalid login attempt returns a clear failure message (via `InvalidLoginException`) rather than a raw stack trace.
 
-> ⚠️ **Scope note:** This is a console-based academic project. Passwords are stored as plain strings for simplicity and are **not** intended to represent production-grade security practice. Hashing, salting, and real authentication mechanisms are explicitly out of scope for Version 1 and are listed under Future Enhancements.
+> ⚠️ **Scope note:** This is a JavaFX-based academic project. Passwords are stored as plain strings for simplicity and are **not** intended to represent production-grade security practice. Hashing, salting, and real authentication mechanisms are explicitly out of scope for Version 1 and are listed under Future Enhancements.
 
 ---
 
@@ -203,7 +203,7 @@ Custom checked/unchecked exceptions represent domain failures explicitly rather 
 | `EmptyCartException` | Checkout is attempted on an empty cart |
 | `InvalidPaymentException` | An unsupported or malformed payment request is made |
 
-Each service method that can fail declares `throws` accordingly, and the `ui` layer wraps calls in `try/catch` blocks to present clean, user-facing console messages instead of raw stack traces.
+Each service method that can fail declares `throws` accordingly, and the `gui` layer wraps calls in `try/catch` blocks to present clean, user-facing dialog messages (JavaFX `Alert`) instead of raw stack traces.
 
 ---
 
@@ -211,20 +211,45 @@ Each service method that can fail declares `throws` accordingly, and the `ui` la
 
 | Package | Contains | Should NOT Contain |
 |---------|----------|---------------------|
-| `model` | Entity state + entity-level behavior (`displayDetails()`, `calculateSubtotal()`) | Business workflows, console I/O |
+| `model` | Entity state + entity-level behavior (`displayDetails()`, `calculateSubtotal()`) | Business workflows, GUI I/O |
 | `interfaces` | Contracts (`Payment`, `Discountable`) | Implementation logic |
 | `payment` / `discount` | Concrete strategy implementations | Order/cart orchestration |
-| `service` | Business logic, validation, orchestration across models | `Scanner`/console I/O, raw collections |
+| `service` | Business logic, validation, orchestration across models | JavaFX imports, raw collections |
 | `repository` | In-memory data storage (`DataStore`) | Business rules |
 | `enums` | Fixed constant sets (`OrderStatus`, `PaymentStatus`) | Behavior/logic |
-| `ui` | Console menus, input/output, calling services | Business logic, direct data manipulation |
+| `gui` | JavaFX views/controllers, input/output, calling services | Business logic, direct data manipulation, direct `DataStore` access |
 
 This matrix is the guiding rule used throughout development to keep each class's responsibility single and clear (Single Responsibility Principle).
 
 ---
 
-## 11. Summary
+## 11. Presentation Layer: JavaFX GUI (`gui`)
 
-EcomFlow's architecture is deliberately simple in scope but disciplined in structure. Every design decision — the abstract `Product` hierarchy, the strategy-based `Payment`/`Discountable` interfaces, the separation of `Cart` from `Order`, and the layered package structure — exists to give a concrete, working example of a specific Java OOP concept, while still resembling how a real application would be organized.
+EcomFlow's presentation layer is a JavaFX desktop interface (`MainApp`, `LoginView`, `RegisterView`, `CustomerDashboardView`, `AdminDashboardView`) sitting directly on top of `service`.
 
-For the full feature list, console UI examples, and setup instructions, see [`README.md`](./README.md).
+The `gui` package never talks to `repository` or `model` business rules directly — it only calls `service` classes (`AuthenticationService`, `CartService`, `OrderService`, etc.), which is what keeps the layering clean and lets the presentation mechanism be swapped later without touching business logic:
+
+```mermaid
+flowchart LR
+    GUI[gui — JavaFX views] --> SVC[service layer]
+    SVC --> REPO[repository — DataStore]
+    SVC --> MODEL[model]
+```
+
+**Design rules for `gui`:**
+
+- Every JavaFX event handler (a button's `setOnAction`, a `TableView` cell edit, and so on) does exactly one thing: gather input from the form/control, call a `service` method, and render the result or catch a thrown exception into a JavaFX `Alert` dialog — no validation or business logic lives in the handler itself.
+- `MainApp` owns a single `Stage` and swaps its root `Scene`/`Node` to move between Login, Register, Customer Dashboard, and Admin Dashboard, so navigation state lives in one place instead of being scattered across multiple windows.
+- All screens share one stylesheet (`resources/css/styles.css`), applied once via `scene.getStylesheets().add(...)` per screen, so visual language (colors, spacing, radii) stays centralized rather than hardcoded per component with inline `-fx-style` strings.
+- Product images are loaded once via `GuiUtils` helper methods (e.g., `loadImage(String filename)`) into `ImageView` nodes, keeping file-path/resource-loading logic out of individual view classes.
+- Long-running work (there is none yet, since everything is in-memory) would be moved off the JavaFX Application Thread using a `Task`/`Service`, with results applied back on the UI thread via `Platform.runLater`.
+
+This mirrors the same Strategy-style thinking used for `Payment`/`Discountable` in §4: the presentation mechanism sits behind a stable layer boundary, so a future web frontend (see README's Future Enhancements) could be added the same way, without touching `service`, `model`, or `repository`.
+
+---
+
+## 12. Summary
+
+EcomFlow's architecture is deliberately simple in scope but disciplined in structure. Every design decision — the abstract `Product` hierarchy, the strategy-based `Payment`/`Discountable` interfaces, the separation of `Cart` from `Order`, the layered package structure, and the JavaFX `gui` layer with its centralized CSS styling sitting cleanly on top of `service` — exists to give a concrete, working example of a specific Java OOP concept, while still resembling how a real application would be organized.
+
+For the full feature list, JavaFX UI design, and setup instructions, see [`README.md`](./README.md).

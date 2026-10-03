@@ -2,11 +2,11 @@
 
 ### Smart E-Commerce Management System
 
-**A Java OOP Course Project — demonstrating core Object-Oriented Programming principles through a modular, console-based e-commerce simulation.**
+**A Java OOP Course Project — demonstrating core Object-Oriented Programming principles through a modular, JavaFX e-commerce simulation with a custom CSS-styled UI.**
 
 ![Java](https://img.shields.io/badge/Java-17%2B-orange?logo=openjdk)
 ![Type](https://img.shields.io/badge/Type-Academic%20Project-blue)
-![Interface](https://img.shields.io/badge/Interface-Console%20%2F%20CLI-lightgrey)
+![Interface](https://img.shields.io/badge/Interface-JavaFX%20%2B%20CSS-lightgrey)
 ![Status](https://img.shields.io/badge/Status-In%20Development-yellow)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
@@ -18,7 +18,7 @@
 
 ## 📖 About the Project
 
-EcomFlow is a **console-based Java application** that simulates the core operations of an online shopping platform. It allows **customers** to browse products, manage a shopping cart, and place orders, while **admins** manage products, inventory, categories, and order fulfillment.
+EcomFlow is a **JavaFX desktop application** that simulates the core operations of an online shopping platform. It allows **customers** to browse products, manage a shopping cart, and place orders, while **admins** manage products, inventory, categories, and order fulfillment.
 
 The system is intentionally built using **layered architecture** and **classic OOP design patterns** (abstraction, inheritance hierarchies, interface-based polymorphism) so that each design decision maps back to a specific Java OOP concept — making it suitable for coursework, viva presentations, and portfolio demonstration.
 
@@ -30,13 +30,13 @@ The system is intentionally built using **layered architecture** and **classic O
 - Design a clean, layered architecture separating **models**, **services**, **repositories**, and **UI**.
 - Demonstrate **abstraction** and **polymorphism** through product and payment hierarchies.
 - Practice **encapsulation** and **defensive validation** across all entity classes.
-- Build a fully working **console application** without relying on external frameworks or databases.
+- Build a fully working **JavaFX desktop application**, styled with custom CSS, without relying on a database or any business/data framework.
 
 ---
 
 ## ✨ Features
 
-> All features below are **implemented in Version 1 (console-based, in-memory)** unless otherwise noted in [Future Enhancements](#-future-enhancements).
+> All features below are **implemented in Version 1 (JavaFX GUI, in-memory)** unless otherwise noted in [Future Enhancements](#-future-enhancements).
 
 ### Customer Features
 - Register and log in
@@ -79,11 +79,11 @@ Both roles inherit from a common **`User`** base class, sharing authentication a
 
 ## 🏗️ System Architecture
 
-EcomFlow follows a **layered, package-based architecture** that separates concerns between data models, business logic, and the console UI.
+EcomFlow follows a **layered, package-based architecture** that separates concerns between data models, business logic, and the JavaFX GUI.
 
 ```mermaid
 flowchart TD
-    UI["ui package<br/>MainMenu / CustomerMenu / AdminMenu"] --> SVC["service package<br/>Business Logic Layer"]
+    UI["gui package<br/>MainApp / CustomerDashboardView / AdminDashboardView"] --> SVC["service package<br/>Business Logic Layer"]
     SVC --> MODEL["model package<br/>Entity Classes"]
     SVC --> REPO["repository package<br/>DataStore (In-Memory)"]
     SVC --> IFACE["interfaces package<br/>Payment / Discountable"]
@@ -96,7 +96,7 @@ flowchart TD
 
 | Layer | Responsibility |
 |-------|-----------------|
-| `ui` | Console menus and user interaction (input/output only) |
+| `gui` | JavaFX views/controllers and user interaction (calls services only, no business logic) |
 | `service` | Business logic — validation, orchestration, workflows |
 | `model` | Core entity classes (data + entity-level behavior) |
 | `repository` | In-memory data storage using Java Collections |
@@ -252,65 +252,92 @@ classDiagram
 ## 📂 Project Structure
 
 ```
-src/
-└── com/
-    └── ecomflow/
-        │
-        ├── Main.java                     # Application entry point
-        │
-        ├── model/                        # Core entity classes
-        │   ├── User.java
-        │   ├── Customer.java
-        │   ├── Admin.java
-        │   ├── Product.java
-        │   ├── Electronics.java
-        │   ├── Clothing.java
-        │   ├── Grocery.java
-        │   ├── Category.java
-        │   ├── Cart.java
-        │   ├── CartItem.java
-        │   ├── Order.java
-        │   ├── OrderItem.java
-        │   ├── Address.java
-        │   └── Invoice.java
-        │
-        ├── interfaces/                   # Contracts / abstractions
-        │   ├── Payment.java
-        │   └── Discountable.java
-        │
-        ├── payment/                      # Payment strategy implementations
-        │   ├── UPIPayment.java
-        │   ├── CardPayment.java
-        │   └── CashOnDelivery.java
-        │
-        ├── discount/                     # Discount strategy implementations
-        │   ├── PercentageDiscount.java
-        │   ├── FlatDiscount.java
-        │   └── NoDiscount.java
-        │
-        ├── service/                      # Business logic layer
-        │   ├── AuthenticationService.java
-        │   ├── ProductService.java
-        │   ├── CustomerService.java
-        │   ├── AdminService.java
-        │   ├── CartService.java
-        │   ├── OrderService.java
-        │   ├── PaymentService.java
-        │   ├── InventoryService.java
-        │   └── DiscountService.java
-        │
-        ├── repository/                   # In-memory data storage
-        │   └── DataStore.java
-        │
-        ├── enums/                        # Fixed constant sets
-        │   ├── OrderStatus.java
-        │   └── PaymentStatus.java
-        │
-        └── ui/                           # Console interaction layer
-            ├── MainMenu.java
-            ├── CustomerMenu.java
-            └── AdminMenu.java
+EcomFlow/
+├── lib/
+│   └── javafx-sdk-21.0.x/            # Downloaded JavaFX SDK — not written by us, see Installation & Setup
+│
+├── resources/                        # Everything the GUI loads at runtime (not compiled)
+│   ├── css/
+│   │   └── styles.css                # Single stylesheet for the whole app
+│   └── images/
+│       ├── logo.png
+│       ├── icons/                    # Small UI icons (cart, logout, search, edit, delete...)
+│       │   ├── cart.png
+│       │   ├── logout.png
+│       │   └── search.png
+│       └── products/                 # Product images shown in cards/tables
+│           ├── laptop.png
+│           ├── smartphone.png
+│           ├── tshirt.png
+│           └── ...
+│
+├── src/
+│   └── com/
+│       └── ecomflow/
+│           │
+│           ├── Main.java                     # Application entry point — launches MainApp
+│           │
+│           ├── model/                        # Core entity classes
+│           │   ├── User.java
+│           │   ├── Customer.java
+│           │   ├── Admin.java
+│           │   ├── Product.java
+│           │   ├── Electronics.java
+│           │   ├── Clothing.java
+│           │   ├── Grocery.java
+│           │   ├── Category.java
+│           │   ├── Cart.java
+│           │   ├── CartItem.java
+│           │   ├── Order.java
+│           │   ├── OrderItem.java
+│           │   ├── Address.java
+│           │   └── Invoice.java
+│           │
+│           ├── interfaces/                   # Contracts / abstractions
+│           │   ├── Payment.java
+│           │   └── Discountable.java
+│           │
+│           ├── payment/                      # Payment strategy implementations
+│           │   ├── UPIPayment.java
+│           │   ├── CardPayment.java
+│           │   └── CashOnDelivery.java
+│           │
+│           ├── discount/                     # Discount strategy implementations
+│           │   ├── PercentageDiscount.java
+│           │   ├── FlatDiscount.java
+│           │   └── NoDiscount.java
+│           │
+│           ├── service/                      # Business logic layer
+│           │   ├── AuthenticationService.java
+│           │   ├── ProductService.java
+│           │   ├── CustomerService.java
+│           │   ├── AdminService.java
+│           │   ├── CartService.java
+│           │   ├── OrderService.java
+│           │   ├── PaymentService.java
+│           │   ├── InventoryService.java
+│           │   └── DiscountService.java
+│           │
+│           ├── repository/                   # In-memory data storage
+│           │   └── DataStore.java
+│           │
+│           ├── enums/                        # Fixed constant sets
+│           │   ├── OrderStatus.java
+│           │   └── PaymentStatus.java
+│           │
+│           └── gui/                          # JavaFX GUI layer
+│               ├── MainApp.java              # extends javafx.application.Application
+│               ├── LoginView.java
+│               ├── RegisterView.java
+│               ├── CustomerDashboardView.java
+│               ├── AdminDashboardView.java
+│               ├── ProductCard.java          # reusable image + details card component
+│               └── GuiUtils.java             # shared alert/dialog/image-loading helpers
+│
+└── out/                               # Compiled .class files (generated, not committed)
 ```
+
+**Why `resources/` sits outside `src/`:** CSS and image files aren't Java source, so they don't belong in the package tree — they're loaded at runtime as classpath resources (see Installation & Setup for the exact command).
 
 📄 See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for detailed module descriptions, package responsibilities, and additional sequence diagrams.
 
@@ -430,21 +457,21 @@ if (payment instanceof CardPayment cp) { // Downcasting (pattern variable)
 
 ```mermaid
 flowchart TD
-    A[Start] --> B[Main Menu]
-    B --> C{Choice}
+    A[Launch App] --> B[Login / Register Screen]
+    B --> C{Action}
     C -->|Login| D[AuthenticationService]
     C -->|Register| E[Create New User]
-    C -->|Exit| F[Terminate Application]
+    C -->|Exit| F[Close Application]
     D --> G{Identify Role}
-    G -->|Customer| H[Customer Menu]
-    G -->|Admin| I[Admin Menu]
+    G -->|Customer| H[Customer Dashboard]
+    G -->|Admin| I[Admin Dashboard]
 ```
 
 ### Customer Flow
 
 ```mermaid
 flowchart TD
-    A[Customer Menu] --> B[View Products]
+    A[Customer Dashboard] --> B[View Products]
     B --> C[Search / Filter]
     C --> D[View Product Details]
     D --> E[Add to Cart]
@@ -464,7 +491,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    A[Admin Menu] --> B[Manage Products]
+    A[Admin Dashboard] --> B[Manage Products]
     B --> C[Add / Update / Delete Product]
     A --> D[Manage Inventory]
     A --> E[View Orders]
@@ -482,9 +509,10 @@ flowchart TD
 | Version | Java 17+ (recommended) |
 | Paradigm | Object-Oriented Programming |
 | Data Storage | In-memory (Java Collections Framework) |
-| Interface | Console / CLI |
-| Build | Manual compilation via `javac` (no build tool required) |
-| External Frameworks | None — pure core Java |
+| Interface | JavaFX GUI, styled with custom CSS |
+| Styling | JavaFX CSS (`resources/css/styles.css`) |
+| Build | Manual compilation via `javac`/`java` with the JavaFX SDK on the module path (no Maven/Gradle required) |
+| External Frameworks | JavaFX SDK only (UI toolkit, downloaded separately since Java 11) — no other frameworks |
 
 ---
 
@@ -508,94 +536,122 @@ flowchart TD
 
 ---
 
-## 🖥️ Console Interface
+## 🎨 JavaFX UI Design
 
-### Main Menu
-```
-=========================================
-              ECOMFLOW
-     Smart E-Commerce Management System
-=========================================
+`MainApp` (extends `javafx.application.Application`) owns a single `Stage` and swaps its root `Node` between screens — the JavaFX equivalent of `CardLayout`, but with each screen free to use whatever layout (`BorderPane`, `GridPane`, `FlowPane`, `HBox`/`VBox`) fits it best. Every screen loads the same `styles.css` stylesheet, so the whole app shares one consistent visual language instead of each screen inventing its own look.
 
-1. Login
-2. Register
-3. Exit
+### Visual Design System (`resources/css/styles.css`)
 
-Enter your choice:
-```
+| Token | Value | Used for |
+|-------|-------|----------|
+| `--color-primary` | `#2E7D32` (deep green) | Primary buttons, active nav item, price highlights |
+| `--color-primary-dark` | `#1B5E20` | Button hover/pressed states |
+| `--color-accent` | `#FF7043` (warm orange) | "Add to Cart" / call-to-action buttons |
+| `--color-bg` | `#F7F8FA` (soft off-white) | Screen backgrounds |
+| `--color-surface` | `#FFFFFF` | Cards, panels, dialogs |
+| `--color-text` | `#1C1C1C` | Primary text |
+| `--color-text-muted` | `#6B7280` | Secondary text, captions |
+| `--radius-card` | `12px` | Product cards, buttons, input fields |
+| Font | `"Segoe UI", Inter, sans-serif` | Headings and body text |
 
-### Customer Dashboard
-```
-=========================================
-           CUSTOMER DASHBOARD
-=========================================
+> JavaFX CSS doesn't support real CSS custom properties (`var()`) — the table above documents the palette by name; in `styles.css` each value is simply repeated wherever it's used, or defined once as a `-fx-*` looked-up color on the root node.
 
-1. Browse Products
-2. Search Products
-3. View Cart
-4. Place Order
-5. Order History
-6. Profile
-7. Logout
-```
+**Design principles applied:**
+- Generous white space and card-based layout instead of dense forms/tables everywhere
+- Soft drop shadows (`-fx-effect: dropshadow(...)`) on cards and dialogs for depth
+- Rounded corners (`-fx-background-radius`) on buttons, cards, and input fields
+- Hover and pressed states on every clickable element (`:hover`, `:pressed` pseudo-classes)
+- Product images given equal, fixed-size treatment (`ImageView` with `setPreserveRatio(true)` and a clipped fixed frame) so the catalog grid stays visually even even when source images vary in size
 
-### Admin Dashboard
-```
-=========================================
-             ADMIN DASHBOARD
-=========================================
+### Screens
 
-1. Add Product
-2. Update Product
-3. Delete Product
-4. View Products
-5. Manage Inventory
-6. View Orders
-7. Update Order Status
-8. Logout
-```
+**Login / Register** — centered card over the `--color-bg` background, app logo (`resources/images/logo.png`) above the form, primary-colored submit button with a hover-darken effect.
+
+**Customer Dashboard** — left-hand navigation rail (Browse, Cart, Orders, Profile) built with a `VBox`; main content area on the right:
+- *Browse Products* — a responsive `FlowPane`/`GridPane` grid of `ProductCard` components, each showing the product image (from `resources/images/products/`), name, price, category badge, and an "Add to Cart" button; a search field and category filter sit above the grid
+- *Cart* — list of items with thumbnail, quantity spinner, remove button, and a live-updating total in the accent color
+- *Checkout* — coupon field, address form, payment method as styled radio/segmented buttons, and a generated invoice card
+- *Order History* — a styled table/list with a colored status chip per row (color varies by `OrderStatus`)
+- *Profile* — read/edit account details in a card layout
+
+**Admin Dashboard** — same navigation-rail shell, different sections:
+- *Products* — add/update/delete forms in a dialog or side panel, backed by a `TableView` with thumbnail, name, price, and stock columns
+- *Inventory* — quick stock adjustment controls per product
+- *Orders* — `TableView` with a status dropdown (`ComboBox<OrderStatus>`) per row, enforcing the same lifecycle rules as the service layer
+- *Customers* — read-only `TableView` of registered customers
 
 ---
 
 ## 🚀 Installation & Setup
 
+### Why an extra step vs. plain Java
+Up to Java 8, JavaFX shipped bundled inside the JDK. **From Java 11 onward, JavaFX is a separate SDK** that Oracle/Gluon distribute independently — this is a normal, well-documented requirement for any JavaFX project on a modern JDK, not something specific to EcomFlow. You only need to download and point to it once.
+
 ### Prerequisites
-- Java Development Kit (JDK) **17 or higher** installed and available on your `PATH`
+- Java Development Kit (JDK) **17 or higher**, installed and available on your `PATH`
+- The **JavaFX SDK** (a separate download — see below)
 - Git (to clone the repository)
 
-### Steps
-
-**1. Clone the repository**
+### 1. Clone the repository
 ```bash
 git clone https://github.com/<your-username>/ecomflow.git
 cd ecomflow
 ```
 
-**2. Open the project**
-Open the folder in your preferred IDE (IntelliJ IDEA, Eclipse, VS Code) or continue directly from the terminal.
+### 2. Download the JavaFX SDK
+1. Go to [gluonhq.com/products/javafx](https://gluonhq.com/products/javafx/) and download the **SDK** (not "jmods") for your OS, matching your JDK version (JavaFX 21 pairs well with JDK 17+).
+2. Unzip it and place the folder inside the project as `lib/javafx-sdk-21.0.x/` (matching the Project Structure above), or anywhere convenient on your machine — you'll reference its `lib` subfolder in the commands/config below.
 
-**3. Verify Java is installed**
+### 3. Verify Java is installed
 ```bash
 java -version
 javac -version
 ```
 
-**4. Compile the project**
+### 4. Compile the project
 
-Compile a single entry file:
+JavaFX classes live on the **module path**, not the regular classpath, so both `javac` and `java` need a `--module-path` pointing at the JavaFX SDK's `lib` folder, plus `--add-modules` naming the JavaFX modules used.
+
 ```bash
-javac -d out src/com/ecomflow/Main.java
+javac --module-path lib/javafx-sdk-21.0.x/lib --add-modules javafx.controls,javafx.fxml \
+      -d out $(find src -name "*.java")
 ```
 
-Or compile the entire source tree (recommended, since `Main.java` depends on all packages):
+> `javafx.fxml` is only needed if you use FXML layout files; if you build every screen purely in Java code (as the default plan in `PHASES.md` does), you can drop it: `--add-modules javafx.controls`.
+
+### 5. Run the application
+
+The `resources/` folder (CSS + images) also needs to be on the classpath so `getResource(...)` calls in the GUI code can find them:
+
 ```bash
-javac -d out $(find src -name "*.java")
+java --module-path lib/javafx-sdk-21.0.x/lib --add-modules javafx.controls \
+     -cp "out:resources" com.ecomflow.Main
 ```
 
-**5. Run the application**
-```bash
-java -cp out com.ecomflow.Main
+On Windows (PowerShell/cmd), use a semicolon instead of a colon in `-cp`:
+```powershell
+java --module-path lib\javafx-sdk-21.0.x\lib --add-modules javafx.controls -cp "out;resources" com.ecomflow.Main
 ```
+
+### IDE setup (recommended over raw terminal commands)
+
+Typing the module-path flags by hand every time gets old fast — most people configure their IDE once instead:
+
+**IntelliJ IDEA**
+1. `File → Project Structure → Libraries → +` and add the JavaFX SDK's `lib` folder as a library.
+2. `Run → Edit Configurations` on your `Main` run configuration, add to **VM options**:
+   `--module-path "lib/javafx-sdk-21.0.x/lib" --add-modules javafx.controls`
+3. Mark the `resources` folder as a **Resources Root** (right-click → Mark Directory as) so it's automatically on the runtime classpath.
+
+**Eclipse**
+1. Install the **e(fx)clipse** plugin from the Eclipse Marketplace (adds JavaFX project support and a UI builder).
+2. Right-click project → `Build Path → Configure Build Path → Libraries → Add External JARs`, add all `.jar` files from the JavaFX SDK's `lib` folder.
+3. In the Run Configuration's **Arguments → VM arguments**, add the same `--module-path`/`--add-modules` flags as above.
+
+**VS Code**
+1. Install the **Extension Pack for Java** and the **JavaFX Support** extension.
+2. In `.vscode/settings.json`, add the JavaFX SDK's `lib` folder to `java.project.referencedLibraries`.
+3. In `.vscode/launch.json`, add `"vmArgs": "--module-path lib/javafx-sdk-21.0.x/lib --add-modules javafx.controls"` to the launch configuration for `Main`.
 
 ---
 
@@ -652,9 +708,9 @@ java -cp out com.ecomflow.Main
 
 ## 🧪 Testing
 
-Version 1 of EcomFlow relies on **manual console-driven testing**:
+Version 1 of EcomFlow relies on **manual, GUI-driven testing**:
 
-- Each service (`AuthenticationService`, `CartService`, `OrderService`, etc.) is exercised through the console menus covering both valid and invalid inputs.
+- Each service (`AuthenticationService`, `CartService`, `OrderService`, etc.) is exercised through the JavaFX screens, covering both valid and invalid inputs.
 - Validation rules (e.g., empty cart checkout, negative stock, insufficient stock, invalid login) are manually verified against the [Validation Rules](#validation-rules) below.
 - Edge cases such as cancelling a delivered order or applying an invalid discount are tested to confirm the correct custom exception is thrown and handled gracefully.
 

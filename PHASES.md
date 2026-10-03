@@ -2,7 +2,7 @@
 
 This breaks the build described in `README.md` / `ARCHITECTURE.md` into ordered phases. Each phase only depends on packages completed in earlier phases, so at every checkpoint the project still compiles and (from Phase 6 onward) actually runs — useful for incremental commits and viva demos along the way.
 
-**Ordering principle:** build from the bottom of the dependency graph up — `enums → model → interfaces/strategies → repository → service → ui` — mirroring the layer rule in ARCHITECTURE.md §10 (a lower layer never depends on a higher one).
+**Ordering principle:** build from the bottom of the dependency graph up — `enums → model → interfaces/strategies → repository → service → gui` — mirroring the layer rule in ARCHITECTURE.md §10 (a lower layer never depends on a higher one).
 
 ---
 
@@ -12,7 +12,7 @@ This breaks the build described in `README.md` / `ARCHITECTURE.md` into ordered 
 
 **Deliverables**
 - `src/com/ecomflow/Main.java` — prints a placeholder banner and exits
-- Empty package folders: `model`, `interfaces`, `payment`, `discount`, `service`, `repository`, `enums`, `ui`
+- Empty package folders: `model`, `interfaces`, `payment`, `discount`, `service`, `repository`, `enums`, `gui`
 - Confirm `javac -d out $(find src -name "*.java")` and `java -cp out com.ecomflow.Main` both work
 
 **Done when:** project compiles and runs, doing nothing but printing the app name.
@@ -141,7 +141,7 @@ The most integration-heavy phase — wires together everything from Phases 2–8
 
 **Deliverables**
 - `service/OrderService.java` — implements the full checkout sequence from ARCHITECTURE.md §8: `placeOrder()`, `cancelOrder()`, `updateStatus()`
-- `service/CustomerService.java`, `service/AdminService.java` — thin orchestration wrappers used by the `ui` layer next
+- `service/CustomerService.java`, `service/AdminService.java` — thin orchestration wrappers used by the `gui` layer next
 
 **Order lifecycle rules to enforce (ARCHITECTURE.md §7):**
 - Deduct inventory the instant an order is placed
@@ -149,21 +149,64 @@ The most integration-heavy phase — wires together everything from Phases 2–8
 - Reject cancellation of a `DELIVERED` order
 - Never let stock go negative (delegate to `InventoryService`)
 
-**Done when:** a full checkout — cart → discount → payment → order → inventory update → invoice — runs correctly via services alone (still no console UI).
+**Done when:** a full checkout — cart → discount → payment → order → inventory update → invoice — runs correctly via services alone (still no GUI wired up).
 
 ---
 
-## Phase 10 — UI Layer
+## Phase 10 — JavaFX GUI Layer
 
-**Deliverables**
-- `ui/MainMenu.java` — login/register/exit
-- `ui/CustomerMenu.java` — matches the Customer Dashboard menu in README.md
-- `ui/AdminMenu.java` — matches the Admin Dashboard menu in README.md
-- `Main.java` wired to launch `MainMenu`
+JavaFX is a separate SDK from Java 11 onward (see README's Installation & Setup), so this phase starts with getting that toolchain working before writing any screens. Only a new `gui` package and a `resources/` folder are added — services, models, and `DataStore` stay untouched, because the layer rules already forbid business logic in the presentation layer.
 
-**Rule to enforce (§10 matrix):** UI only calls services and prints results — no business logic, no direct `DataStore` access from `ui`.
+**Rules for this phase**
+- GUI classes only call services and display results.
+- Catch the custom exceptions from Phase 1 and show them via a JavaFX `Alert` instead of letting a stack trace surface.
+- Every screen applies the same `resources/css/styles.css` stylesheet — no per-screen inline styling that drifts from the shared design system.
 
-**Done when:** the whole README.md "How to Use" walkthrough (as both Customer and Admin) works end-to-end from the console.
+### 10A — Toolchain, Shell & Auth
+- Download the JavaFX SDK and confirm the sample `--module-path`/`--add-modules` command from the README actually runs a blank JavaFX window on your machine — do this before writing any real screens, so toolchain problems don't block later work
+- `resources/css/styles.css` — start with just color variables-by-convention, base font, and button styles from the README's Visual Design System table
+- `gui/MainApp.java` — extends `Application`, owns the `Stage`, loads the stylesheet, and swaps root `Scene`/`Node` between screens
+- `gui/LoginView.java`, `gui/RegisterView.java`
+- `Main.java` wired to launch `MainApp`
+
+**Done when:** you can register, log in, and get routed to the right (blank) dashboard by role, with the login/register screens already styled per `styles.css` — not default-JavaFX-gray.
+
+### 10B — Customer Screens
+- `gui/CustomerDashboardView.java` — navigation rail + content area (see README's Screens section)
+- `gui/ProductCard.java` — reusable component: product image (`ImageView`), name, price, category badge, "Add to Cart" button
+- Browse Products grid (`FlowPane`/`GridPane` of `ProductCard`s) with search field and category filter
+- Cart view: item list with thumbnail, quantity control, remove button, live total
+- Checkout view: coupon field, address form, payment method selector, invoice display
+- Order History view with a colored status chip per `OrderStatus`
+- Profile view
+
+**Done when:** the full customer flow (browse → cart → checkout → invoice → history) works with the mouse, product images render in the browse grid, and it visually matches the design system, not default JavaFX styling.
+
+### 10C — Admin Screens
+- `gui/AdminDashboardView.java` — same navigation-rail shell, admin sections
+- Product add/update/delete forms + `TableView` with a thumbnail column
+- Inventory adjustment controls
+- Orders `TableView` with a `ComboBox<OrderStatus>` per row enforcing the lifecycle rules
+- Customers `TableView` (read-only)
+
+**Done when:** every item in the Admin Features list works from the GUI and matches the shared style.
+
+### 10D — CSS Design Pass & Product Images
+This is a dedicated pass to take the working-but-plain screens from 10B/10C and make them look intentional, rather than trying to perfect styling while also wiring up logic.
+
+- Fill out `styles.css` fully: hover/pressed states on all buttons, card drop shadows, rounded corners, consistent spacing/padding across every screen
+- Source or create placeholder product images for the sample catalog (Laptop, Smartphone, Headphones, T-Shirt, Jeans, Jacket, Rice, Milk, Coffee) and drop them into `resources/images/products/`
+- Add small icons (cart, logout, search, edit, delete) to `resources/images/icons/` and wire them into buttons/nav items via `GuiUtils.loadImage(...)`
+- Pass over every screen once, side by side with the README's Screens section, and fix anything that doesn't match
+
+**Done when:** the app looks like one cohesive designed product, not a collection of default-styled JavaFX controls — every screen uses the same palette, spacing, and corner radius.
+
+### 10E — Interaction Polish
+- Inline validation messages (empty fields, invalid pincode, and so on) instead of only alert popups
+- Empty-state messaging (e.g., "Your cart is empty" instead of a blank list)
+- Screenshots for the README's Screenshots section
+
+**Done when:** the whole README.md "How to Use" walkthrough (as both Customer and Admin) works end-to-end through the JavaFX app and feels polished, not just functional.
 
 ---
 
@@ -171,7 +214,7 @@ The most integration-heavy phase — wires together everything from Phases 2–8
 
 **Deliverables**
 - Walk every row in README.md's **Validation Rules** table and confirm each one is actually enforced somewhere in `service`
-- Walk every row in the **Exception Handling** table and confirm each exception is both thrown and caught with a clean message (no raw stack traces reaching the console)
+- Walk every row in the **Exception Handling** table and confirm each exception is both thrown and caught with a clean message (surfaced as a `JOptionPane` dialog, never a raw stack trace)
 - Manually test the specific edge cases README.md calls out: cancelling a delivered order, applying an invalid discount code
 
 **Done when:** every validation rule and every custom exception has been deliberately triggered once and behaves as documented.
@@ -183,7 +226,7 @@ The most integration-heavy phase — wires together everything from Phases 2–8
 **Deliverables**
 - Re-check `README.md`'s OOP Concepts Summary table against the actual code and note any gaps
 - Add/verify sample data (demo users, sample catalog from README.md) so the app is demo-ready on first run
-- Optional: screenshots for the README's Screenshots section
+- Screenshots of each JavaFX screen for the README's Screenshots section
 
 **Done when:** the project is viva-ready — every claimed OOP concept has a real, pointable-to example in the code.
 
@@ -221,7 +264,7 @@ Phase 8 (Cart/Discount/Payment services)
    │
 Phase 9 (Order orchestration) ── needs everything above
    │
-Phase 10 (UI)
+Phase 10 (JavaFX GUI: 10A → 10B → 10C → 10D → 10E)
    │
 Phase 11 (hardening) → Phase 12 (polish) → Phase 13 (stretch)
 ```

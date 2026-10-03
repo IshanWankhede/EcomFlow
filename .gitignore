@@ -1,0 +1,59 @@
+# ===== Compiled output =====
+out/
+*.class
+
+# ===== JavaFX SDK (downloaded separately — see README's Installation & Setup) =====
+# Don't commit this: it's ~150-200MB and every teammate downloads their own copy
+# matching their OS. If you'd rather track it (e.g. a private repo, offline grading),
+# delete this line.
+lib/javafx-sdk-*/
+
+# ===== IDE files =====
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# Eclipse
+.classpath
+.project
+.settings/
+bin/
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# NetBeans
+nbproject/
+build/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# ===== OS files =====
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.directory
+
+# ===== Logs / temp =====
+*.log
+*.tmp
+*.bak
+
+# ===== Antigravity / agent scratch files (if any get generated) =====
+.antigravity/

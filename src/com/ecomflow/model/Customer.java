@@ -5,17 +5,20 @@ import java.util.List;
 
 public class Customer extends User {
     private Address address;
-    
-    // TODO: In Phase 4, replace Object with com.ecomflow.model.Cart
-    private Object cart;
-    
-    // TODO: In Phase 4, replace Object with com.ecomflow.model.Order
-    private List<Object> orderHistory;
+    private Cart cart;
+    private List<Order> orderHistory;
 
     public Customer(String name, String email, String password, String phone, Address address) {
         super(name, email, password, phone);
         this.address = address;
+        this.cart = new Cart(this);
         this.orderHistory = new ArrayList<>();
+    }
+
+    public void addOrderToHistory(Order order) {
+        if (order != null) {
+            orderHistory.add(order);
+        }
     }
 
     @Override
@@ -27,6 +30,7 @@ public class Customer extends User {
         System.out.println("Email        : " + getEmail());
         System.out.println("Phone        : " + getPhone());
         System.out.println("Address      : " + (address != null ? address.toString() : "Not provided"));
+        System.out.println("Cart Items   : " + (cart != null ? cart.getItems().size() : 0));
         System.out.println("Total Orders : " + (orderHistory != null ? orderHistory.size() : 0));
         System.out.println("====================================================");
     }
@@ -39,19 +43,19 @@ public class Customer extends User {
         this.address = address;
     }
 
-    public Object getCart() {
+    public Cart getCart() {
         return cart;
     }
 
-    public void setCart(Object cart) {
+    public void setCart(Cart cart) {
         this.cart = cart;
     }
 
-    public List<Object> getOrderHistory() {
+    public List<Order> getOrderHistory() {
         return orderHistory;
     }
 
-    public void setOrderHistory(List<Object> orderHistory) {
+    public void setOrderHistory(List<Order> orderHistory) {
         this.orderHistory = orderHistory;
     }
 }

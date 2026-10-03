@@ -78,11 +78,17 @@ public class MainApp extends Application {
         dataStore.addCategory(catGrocery);
 
         // Seed Products
-        productService.addProduct(new Electronics("Noise-Cancelling Headphones", 199.99, 15, catElectronics, "SoundMax", 24));
-        productService.addProduct(new Electronics("Smart Fitness Band 8", 49.99, 25, catElectronics, "FitTrack", 12));
-        productService.addProduct(new Clothing("Winter Fleece Jacket", 59.99, 40, catClothing, "L", "Polyester"));
-        productService.addProduct(new Clothing("Classic Cotton T-Shirt", 19.99, 50, catClothing, "M", "100% Cotton"));
-        productService.addProduct(new Grocery("Organic Almond Milk", 4.99, 30, catGrocery, LocalDate.now().plusDays(15)));
+        productService.addProduct(new Electronics(5001, "Noise-Cancelling Headphones", 199.99, 15, catElectronics, "SoundMax", 24));
+        productService.addProduct(new Electronics(5002, "Pro Smartphone 5G", 799.99, 12, catElectronics, "ApexMobile", 12));
+        productService.addProduct(new Electronics(5003, "Ultra Slim Laptop 16\"", 1299.99, 8, catElectronics, "ProTech", 36));
+        
+        productService.addProduct(new Clothing(5004, "Winter Fleece Jacket", 89.99, 35, catClothing, "L", "Polyester"));
+        productService.addProduct(new Clothing(5005, "Classic Cotton T-Shirt", 24.99, 50, catClothing, "M", "100% Cotton"));
+        productService.addProduct(new Clothing(5006, "Slim Fit Denim Jeans", 69.99, 40, catClothing, "32", "Denim"));
+
+        productService.addProduct(new Grocery(5007, "Organic Almond Milk", 4.99, 30, catGrocery, LocalDate.now().plusDays(10)));
+        productService.addProduct(new Grocery(5008, "Royal Basmati Rice 5kg", 18.50, 45, catGrocery, LocalDate.now().plusMonths(6)));
+        productService.addProduct(new Grocery(5009, "Artisan Coffee Beans 500g", 14.99, 25, catGrocery, LocalDate.now().plusMonths(4)));
     }
 
     @Override

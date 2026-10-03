@@ -16,38 +16,60 @@ import javafx.scene.layout.StackPane;
 public class GuiUtils {
 
     /**
-     * Loads an image from the resources/images directory or returns a stylized placeholder node.
+     * Loads an image from the resources folder with fallback placeholder.
      */
-    public static Node createProductImageView(String imageName, String categoryName, double fitWidth, double fitHeight) {
+    public static Node loadImage(String relativePath, double fitWidth, double fitHeight) {
         String[] possiblePaths = {
-            "resources/images/products/" + imageName,
-            "resources/images/" + imageName,
-            "resources/" + imageName
+            "resources/" + relativePath,
+            "resources/images/" + relativePath,
+            "resources/images/products/" + relativePath,
+            "resources/images/icons/" + relativePath
         };
 
         for (String path : possiblePaths) {
             File file = new File(path);
             if (file.exists() && file.isFile()) {
                 try {
-                    Image image = new Image(new FileInputStream(file));
-                    ImageView imageView = new ImageView(image);
-                    imageView.setFitWidth(fitWidth);
-                    imageView.setFitHeight(fitHeight);
-                    imageView.setPreserveRatio(true);
-                    return imageView;
+                    ImageView iv = new ImageView(new Image(new FileInputStream(file)));
+                    iv.setFitWidth(fitWidth);
+                    iv.setFitHeight(fitHeight);
+                    iv.setPreserveRatio(true);
+                    iv.setSmooth(true);
+                    return iv;
                 } catch (Exception ignored) {
                 }
             }
         }
+        return null;
+    }
 
-        // Fallback: Return a sleek graphical placeholder tile with category-based emoji
+    /**
+     * Loads a product image or creates a category-styled fallback graphic node.
+     */
+    public static Node createProductImageView(String imageName, String categoryName, double fitWidth, double fitHeight) {
+        Node loaded = loadImage("products/" + imageName, fitWidth, fitHeight);
+        if (loaded != null) {
+            return loaded;
+        }
+
+        // Try generic fallback without ID if specific ID file not found
+        if (categoryName != null) {
+            String lower = categoryName.toLowerCase();
+            if (lower.contains("elect")) loaded = loadImage("products/headphones.png", fitWidth, fitHeight);
+            else if (lower.contains("apparel") || lower.contains("cloth")) loaded = loadImage("products/jacket.png", fitWidth, fitHeight);
+            else if (lower.contains("groc")) loaded = loadImage("products/milk.png", fitWidth, fitHeight);
+            
+            if (loaded != null) return loaded;
+        }
+
+        // Graphical Tile Fallback
         StackPane placeholder = new StackPane();
         placeholder.setPrefSize(fitWidth, fitHeight);
         placeholder.setMaxSize(fitWidth, fitHeight);
         placeholder.setStyle(
             "-fx-background-color: #F3F4F6; " +
-            "-fx-background-radius: 8px; " +
-            "-fx-border-radius: 8px; " +
+            "-fx-background-radius: 10px; " +
+            "-fx-border-radius: 10px; " +
             "-fx-border-color: #E5E7EB; " +
             "-fx-border-width: 1px;"
         );
@@ -59,15 +81,27 @@ public class GuiUtils {
             else if (lower.contains("apparel") || lower.contains("cloth")) emoji = "🧥";
             else if (lower.contains("groc")) emoji = "🥛";
             else if (lower.contains("gadget")) emoji = "⌚";
-            else if (lower.contains("appliance")) emoji = "🥤";
         }
 
         Label iconLabel = new Label(emoji);
-        iconLabel.setStyle("-fx-font-size: 36px;");
+        iconLabel.setStyle("-fx-font-size: 32px;");
         placeholder.getChildren().add(iconLabel);
         StackPane.setAlignment(iconLabel, Pos.CENTER);
 
         return placeholder;
+    }
+
+    /**
+     * Loads an icon from resources/images/icons/ with fallback emoji.
+     */
+    public static Node loadIcon(String iconName, String fallbackEmoji, double size) {
+        Node icon = loadImage("icons/" + iconName, size, size);
+        if (icon != null) {
+            return icon;
+        }
+        Label label = new Label(fallbackEmoji);
+        label.setStyle("-fx-font-size: " + (int)(size * 0.8) + "px;");
+        return label;
     }
 
     public static Label createStatusBadge(OrderStatus status) {

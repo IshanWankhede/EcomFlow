@@ -11,8 +11,18 @@ public class Grocery extends Product {
         setExpiryDate(expiryDate);
     }
 
+    public Grocery(String name, double price, int stock, Category category, LocalDate expiryDate, String imageUrl) {
+        super(name, price, stock, category, imageUrl);
+        setExpiryDate(expiryDate);
+    }
+
     public Grocery(int productId, String name, double price, int stock, Category category, LocalDate expiryDate) {
         super(productId, name, price, stock, category);
+        setExpiryDate(expiryDate);
+    }
+
+    public Grocery(int productId, String name, double price, int stock, Category category, LocalDate expiryDate, String imageUrl) {
+        super(productId, name, price, stock, category, imageUrl);
         setExpiryDate(expiryDate);
     }
 

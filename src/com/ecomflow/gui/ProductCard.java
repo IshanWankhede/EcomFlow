@@ -36,7 +36,10 @@ public class ProductCard extends VBox {
 
         // 1. Image Thumbnail
         String categoryName = (product.getCategory() != null) ? product.getCategory().getName() : "General";
-        Node imageNode = GuiUtils.createProductImageView("product-" + product.getProductId() + ".png", categoryName, 208, 130);
+        String imgPath = (product.getImageUrl() != null && !product.getImageUrl().isEmpty())
+                ? product.getImageUrl()
+                : "product-" + product.getProductId() + ".png";
+        Node imageNode = GuiUtils.createProductImageView(imgPath, categoryName, 208, 130);
         VBox imageContainer = new VBox(imageNode);
         imageContainer.setAlignment(Pos.CENTER);
         imageContainer.setPrefHeight(130);

@@ -16,14 +16,34 @@ import javafx.scene.layout.StackPane;
 public class GuiUtils {
 
     /**
-     * Loads an image from the resources folder with fallback placeholder.
+     * Loads an image from a URL or the resources folder with fallback placeholder.
      */
-    public static Node loadImage(String relativePath, double fitWidth, double fitHeight) {
+    public static Node loadImage(String pathOrUrl, double fitWidth, double fitHeight) {
+        if (pathOrUrl == null || pathOrUrl.trim().isEmpty()) {
+            return null;
+        }
+
+        // 1. Web URL (e.g. Unsplash)
+        if (pathOrUrl.startsWith("http://") || pathOrUrl.startsWith("https://")) {
+            try {
+                Image img = new Image(pathOrUrl, fitWidth, fitHeight, true, true, true);
+                ImageView iv = new ImageView(img);
+                iv.setFitWidth(fitWidth);
+                iv.setFitHeight(fitHeight);
+                iv.setPreserveRatio(true);
+                iv.setSmooth(true);
+                return iv;
+            } catch (Exception ignored) {
+            }
+        }
+
+        // 2. Local resource file
         String[] possiblePaths = {
-            "resources/" + relativePath,
-            "resources/images/" + relativePath,
-            "resources/images/products/" + relativePath,
-            "resources/images/icons/" + relativePath
+            pathOrUrl,
+            "resources/" + pathOrUrl,
+            "resources/images/" + pathOrUrl,
+            "resources/images/products/" + pathOrUrl,
+            "resources/images/icons/" + pathOrUrl
         };
 
         for (String path : possiblePaths) {
@@ -46,10 +66,15 @@ public class GuiUtils {
     /**
      * Loads a product image or creates a category-styled fallback graphic node.
      */
-    public static Node createProductImageView(String imageName, String categoryName, double fitWidth, double fitHeight) {
-        Node loaded = loadImage("products/" + imageName, fitWidth, fitHeight);
+    public static Node createProductImageView(String pathOrUrl, String categoryName, double fitWidth, double fitHeight) {
+        Node loaded = loadImage(pathOrUrl, fitWidth, fitHeight);
         if (loaded != null) {
             return loaded;
+        }
+
+        if (pathOrUrl != null && !pathOrUrl.startsWith("http")) {
+            loaded = loadImage("products/" + pathOrUrl, fitWidth, fitHeight);
+            if (loaded != null) return loaded;
         }
 
         // Try generic fallback without ID if specific ID file not found

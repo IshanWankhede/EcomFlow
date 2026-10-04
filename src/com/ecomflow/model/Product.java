@@ -8,6 +8,7 @@ public abstract class Product {
     private double price;
     private int stock;
     private Category category;
+    private String imageUrl;
 
     public Product(String name, double price, int stock, Category category) {
         this.productId = ++productCounter;
@@ -17,12 +18,22 @@ public abstract class Product {
         setCategory(category);
     }
 
+    public Product(String name, double price, int stock, Category category, String imageUrl) {
+        this(name, price, stock, category);
+        setImageUrl(imageUrl);
+    }
+
     public Product(int productId, String name, double price, int stock, Category category) {
         this.productId = productId;
         setName(name);
         setPrice(price);
         setStock(stock);
         setCategory(category);
+    }
+
+    public Product(int productId, String name, double price, int stock, Category category, String imageUrl) {
+        this(productId, name, price, stock, category);
+        setImageUrl(imageUrl);
     }
 
     /**
@@ -99,6 +110,14 @@ public abstract class Product {
 
     public void setCategory(Category category) {
         this.category = category;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = (imageUrl != null) ? imageUrl.trim() : null;
     }
 
     public static int getProductCounter() {

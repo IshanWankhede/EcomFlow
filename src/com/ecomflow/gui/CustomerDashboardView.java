@@ -351,7 +351,10 @@ public class CustomerDashboardView {
             itemRow.getStyleClass().add("card-sm");
             itemRow.setAlignment(Pos.CENTER_LEFT);
 
-            Node thumb = GuiUtils.createProductImageView("product-" + p.getProductId() + ".png",
+            String pImg = (p.getImageUrl() != null && !p.getImageUrl().isEmpty())
+                    ? p.getImageUrl()
+                    : "product-" + p.getProductId() + ".png";
+            Node thumb = GuiUtils.createProductImageView(pImg,
                     p.getCategory() != null ? p.getCategory().getName() : "", 64, 64);
 
             VBox itemDetails = new VBox(4);

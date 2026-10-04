@@ -10,8 +10,20 @@ public class Electronics extends Product {
         setWarrantyMonths(warrantyMonths);
     }
 
+    public Electronics(String name, double price, int stock, Category category, String brand, int warrantyMonths, String imageUrl) {
+        super(name, price, stock, category, imageUrl);
+        setBrand(brand);
+        setWarrantyMonths(warrantyMonths);
+    }
+
     public Electronics(int productId, String name, double price, int stock, Category category, String brand, int warrantyMonths) {
         super(productId, name, price, stock, category);
+        setBrand(brand);
+        setWarrantyMonths(warrantyMonths);
+    }
+
+    public Electronics(int productId, String name, double price, int stock, Category category, String brand, int warrantyMonths, String imageUrl) {
+        super(productId, name, price, stock, category, imageUrl);
         setBrand(brand);
         setWarrantyMonths(warrantyMonths);
     }

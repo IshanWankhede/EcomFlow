@@ -10,8 +10,20 @@ public class Clothing extends Product {
         setMaterial(material);
     }
 
+    public Clothing(String name, double price, int stock, Category category, String size, String material, String imageUrl) {
+        super(name, price, stock, category, imageUrl);
+        setSize(size);
+        setMaterial(material);
+    }
+
     public Clothing(int productId, String name, double price, int stock, Category category, String size, String material) {
         super(productId, name, price, stock, category);
+        setSize(size);
+        setMaterial(material);
+    }
+
+    public Clothing(int productId, String name, double price, int stock, Category category, String size, String material, String imageUrl) {
+        super(productId, name, price, stock, category, imageUrl);
         setSize(size);
         setMaterial(material);
     }

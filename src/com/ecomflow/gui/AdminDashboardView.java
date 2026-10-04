@@ -180,7 +180,10 @@ public class AdminDashboardView {
                     setGraphic(null);
                 } else {
                     String cat = (p.getCategory() != null) ? p.getCategory().getName() : "";
-                    Node img = GuiUtils.createProductImageView("product-" + p.getProductId() + ".png", cat, 40, 40);
+                    String pImg = (p.getImageUrl() != null && !p.getImageUrl().isEmpty())
+                            ? p.getImageUrl()
+                            : "product-" + p.getProductId() + ".png";
+                    Node img = GuiUtils.createProductImageView(pImg, cat, 40, 40);
                     setGraphic(img);
                     setAlignment(Pos.CENTER);
                 }

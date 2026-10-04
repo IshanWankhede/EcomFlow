@@ -51,8 +51,13 @@ public class OrderService {
         // a. Validate cart isn't empty
         cartService.validateNotEmpty(cart);
 
+        if (shippingAddress == null || !shippingAddress.isComplete()) {
+            throw new IllegalArgumentException(
+                    "A complete shipping address with a valid pincode is required to place an order.");
+        }
+
         Customer customer = cart.getOwner();
-        if (shippingAddress != null && customer != null) {
+        if (customer != null) {
             customer.setAddress(shippingAddress);
         }
 

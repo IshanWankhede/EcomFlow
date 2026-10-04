@@ -564,21 +564,20 @@ public class CustomerDashboardView {
         Label shipTitle = new Label("1. Shipping Address");
         shipTitle.getStyleClass().add("heading-md");
 
-        Address currAddr = customer.getAddress();
-        TextField streetField = new TextField(currAddr != null ? currAddr.getStreet() : "");
+        TextField streetField = new TextField();
         streetField.setPromptText("Street Address");
 
         GridPane addrGrid = new GridPane();
         addrGrid.setHgap(10);
         addrGrid.setVgap(10);
 
-        TextField cityField = new TextField(currAddr != null ? currAddr.getCity() : "");
+        TextField cityField = new TextField();
         cityField.setPromptText("City");
-        TextField stateField = new TextField(currAddr != null ? currAddr.getState() : "");
+        TextField stateField = new TextField();
         stateField.setPromptText("State");
-        TextField pinField = new TextField(currAddr != null ? currAddr.getPincode() : "");
+        TextField pinField = new TextField();
         pinField.setPromptText("Pincode");
-        TextField countryField = new TextField(currAddr != null ? currAddr.getCountry() : "India");
+        TextField countryField = new TextField();
         countryField.setPromptText("Country");
 
         addrGrid.add(cityField, 0, 0);
@@ -589,6 +588,8 @@ public class CustomerDashboardView {
         Label payTitle = new Label("2. Payment Method");
         payTitle.getStyleClass().add("heading-md");
         payTitle.setPadding(new Insets(10, 0, 0, 0));
+        Label addressRequiredHint = new Label("Complete all shipping fields to place your order.");
+        addressRequiredHint.getStyleClass().add("text-muted");
 
         ToggleGroup payGroup = new ToggleGroup();
         RadioButton upiRadio = new RadioButton("UPI / QR Code");
@@ -630,7 +631,7 @@ public class CustomerDashboardView {
         });
 
         formCard.getChildren().addAll(
-                shipTitle, streetField, addrGrid,
+                shipTitle, streetField, addrGrid, addressRequiredHint,
                 new Separator(),
                 payTitle, radioBox, paymentDetailBox
         );
@@ -720,20 +721,30 @@ public class CustomerDashboardView {
         placeOrderBtn.setMaxWidth(Double.MAX_VALUE);
         GuiUtils.attachHoverScale(placeOrderBtn);
 
-        placeOrderBtn.setOnAction(e -> {
-            // Inline validation: pincode format
-            String enteredPin = pinField.getText().trim();
-            if (!enteredPin.isEmpty() && !Address.isValidPincode(enteredPin)) {
-                GuiUtils.showError("Invalid Pincode",
-                        "Pincode '" + enteredPin + "' is invalid. Please enter 3–10 alphanumeric characters.");
-                return;
-            }
+        Runnable updatePlaceOrderAvailability = () -> {
+            Address address = new Address(
+                    streetField.getText(), cityField.getText(), stateField.getText(),
+                    pinField.getText(), countryField.getText());
+            placeOrderBtn.setDisable(!address.isComplete());
+        };
+        streetField.textProperty().addListener((obs, oldValue, newValue) -> updatePlaceOrderAvailability.run());
+        cityField.textProperty().addListener((obs, oldValue, newValue) -> updatePlaceOrderAvailability.run());
+        stateField.textProperty().addListener((obs, oldValue, newValue) -> updatePlaceOrderAvailability.run());
+        pinField.textProperty().addListener((obs, oldValue, newValue) -> updatePlaceOrderAvailability.run());
+        countryField.textProperty().addListener((obs, oldValue, newValue) -> updatePlaceOrderAvailability.run());
+        updatePlaceOrderAvailability.run();
 
+        placeOrderBtn.setOnAction(e -> {
             Address shippingAddr = new Address(
                     streetField.getText(), cityField.getText(),
                     stateField.getText(), pinField.getText(),
                     countryField.getText()
             );
+            if (!shippingAddr.isComplete()) {
+                GuiUtils.showError("Shipping Address Required",
+                        "Enter a complete shipping address and a valid pincode before placing your order.");
+                return;
+            }
 
             String selectedPayMethod = "UPI";
             if (cardRadio.isSelected()) selectedPayMethod = "CARD";
@@ -748,6 +759,8 @@ public class CustomerDashboardView {
                 showOrderSuccessView(invoice);
             } catch (EmptyCartException | InsufficientStockException | InvalidPaymentException | ProductNotFoundException ex) {
                 GuiUtils.showError("Checkout Failed", ex.getMessage());
+            } catch (IllegalArgumentException ex) {
+                GuiUtils.showError("Shipping Address Required", ex.getMessage());
             } catch (Exception ex) {
                 GuiUtils.showError("Error", "An unexpected error occurred: " + ex.getMessage());
             }

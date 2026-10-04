@@ -335,13 +335,14 @@ public class RegisterView {
             switchBox
         );
 
-        ScrollPane scrollPane = new ScrollPane(formCard);
+        StackPane formContainer = new StackPane(formCard);
+        formContainer.setAlignment(Pos.TOP_CENTER);
+        ScrollPane scrollPane = new ScrollPane(formContainer);
         scrollPane.setFitToWidth(true);
         scrollPane.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-border-width: 0;");
         scrollPane.setPadding(new Insets(10));
 
         rightPanel.getChildren().add(scrollPane);
-        StackPane.setAlignment(formCard, Pos.CENTER);
 
         rootPane.getChildren().addAll(leftPanel, rightPanel);
     }

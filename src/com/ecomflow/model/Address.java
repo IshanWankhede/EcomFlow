@@ -62,6 +62,14 @@ public class Address {
         return pincode.trim().matches("^[0-9A-Za-z\\s\\-]{3,10}$");
     }
 
+    public boolean isComplete() {
+        return !street.isEmpty()
+                && !city.isEmpty()
+                && !state.isEmpty()
+                && isValidPincode(pincode)
+                && !country.isEmpty();
+    }
+
     @Override
     public String toString() {
         return street + ", " + city + ", " + state + " - " + pincode + ", " + country;

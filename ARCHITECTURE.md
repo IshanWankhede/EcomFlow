@@ -136,6 +136,8 @@ EcomFlow uses **in-memory Java Collections** instead of a database for Version 1
 - Password must not be empty.
 - An invalid login attempt returns a clear failure message (via `InvalidLoginException`) rather than a raw stack trace.
 
+**Admin-initiated account deletion:** `AuthenticationService` (or `AdminService`, delegating to it) also exposes a `deleteCustomer(...)` operation, callable only from the Admin Dashboard's Customers screen. Deleting a customer removes their `User`/`Customer` record and frees their email for re-registration, but deliberately does **not** cascade-delete their past `Order` records — order history is treated as a business record that outlives the account that created it, consistent with how `Order`/`OrderItem` already snapshot data independently of live references (see §3.3). The GUI requires an explicit confirmation step before calling this method, since it's destructive and irreversible.
+
 > ⚠️ **Scope note:** This is a JavaFX-based academic project. Passwords are stored as plain strings for simplicity and are **not** intended to represent production-grade security practice. Hashing, salting, and real authentication mechanisms are explicitly out of scope for Version 1 and are listed under Future Enhancements.
 
 ---
@@ -225,7 +227,7 @@ This matrix is the guiding rule used throughout development to keep each class's
 
 ## 11. Presentation Layer: JavaFX GUI (`gui`)
 
-EcomFlow's presentation layer is a JavaFX desktop interface (`MainApp`, `LoginView`, `RegisterView`, `CustomerDashboardView`, `AdminDashboardView`) sitting directly on top of `service`.
+EcomFlow's presentation layer is a JavaFX desktop interface (`MainApp`, `LandingView`, `LoginView`, `RegisterView`, `CustomerDashboardView`, `AdminDashboardView`) sitting directly on top of `service`. `LandingView` is the app's actual first screen — authentication is reached only by clicking through from it, not launched directly.
 
 The `gui` package never talks to `repository` or `model` business rules directly — it only calls `service` classes (`AuthenticationService`, `CartService`, `OrderService`, etc.), which is what keeps the layering clean and lets the presentation mechanism be swapped later without touching business logic:
 
@@ -238,11 +240,14 @@ flowchart LR
 
 **Design rules for `gui`:**
 
-- Every JavaFX event handler (a button's `setOnAction`, a `TableView` cell edit, and so on) does exactly one thing: gather input from the form/control, call a `service` method, and render the result or catch a thrown exception into a JavaFX `Alert` dialog — no validation or business logic lives in the handler itself.
-- `MainApp` owns a single `Stage` and swaps its root `Scene`/`Node` to move between Login, Register, Customer Dashboard, and Admin Dashboard, so navigation state lives in one place instead of being scattered across multiple windows.
-- All screens share one stylesheet (`resources/css/styles.css`), applied once via `scene.getStylesheets().add(...)` per screen, so visual language (colors, spacing, radii) stays centralized rather than hardcoded per component with inline `-fx-style` strings.
+- Every JavaFX event handler (a button's `setOnAction`, a `TableView` cell edit, and so on) does exactly one thing: gather input from the form/control, call a `service` method, and render the result or catch a thrown exception into a JavaFX `Alert` dialog — no validation or business logic lives in the handler itself. The Admin Customers screen's delete-account button follows the same pattern, plus a confirmation `Alert` before the destructive call is made.
+- `MainApp` owns a single `Stage` and swaps its root `Scene`/`Node` to move between Landing, Login, Register, Customer Dashboard, and Admin Dashboard, via a shared `switchSceneWithFade(Node)` helper rather than an instant swap — every navigation transition fades out the old root and fades in the new one, so screen changes read as deliberate rather than jarring.
+- All screens share one stylesheet (`resources/css/styles.css`), applied once via `scene.getStylesheets().add(...)` per screen, so visual language stays centralized rather than hardcoded per component with inline `-fx-style` strings. The stylesheet encodes **two coordinated themes** — dark (`--bg-dark`/`--surface-dark`/`--text-light`) for Landing/Login/Register, light (`--bg-light`/`--text-dark`) for the Dashboards — sharing the same `--accent` color and font so the app still reads as one coherent product across both.
+- The Sora font family is bundled as `.ttf` files under `resources/fonts/` and explicitly loaded via `Font.loadFont(...)` in `MainApp.init()` for each weight used, rather than relying on it being installed system-wide — necessary because, unlike a browser, JavaFX has no automatic web-font fallback.
+- `AnimatedGradientBackground` is a small reusable class (not CSS) implementing the animated, slowly-shifting gradient used behind `LandingView`'s hero and the Auth screens' side panel — built with a looping `Timeline` interpolating background gradient stops, since JavaFX CSS has no `@keyframes` equivalent. `LandingView`'s radiating-ring visual is built the same way in principle: several `Circle` nodes, each independently animated with a staggered, looping `ScaleTransition` + `FadeTransition` pair, rather than any CSS-only trick.
 - Product images are loaded once via `GuiUtils` helper methods (e.g., `loadImage(String filename)`) into `ImageView` nodes, keeping file-path/resource-loading logic out of individual view classes.
 - Long-running work (there is none yet, since everything is in-memory) would be moved off the JavaFX Application Thread using a `Task`/`Service`, with results applied back on the UI thread via `Platform.runLater`.
+- `CaptureScreenshots.java` (in the `com.ecomflow` root package, not `gui`) is a separate dev-only `Application` subclass that renders each `gui` screen headlessly and writes a snapshot to `resources/images/screenshots/`. It depends on the `javafx.swing` module (for `SwingFXUtils`) and is compiled/run independently from the main app — see the file's own header comment for the exact commands. It builds its own temporary demo data (a registered Customer, sample cart/order) rather than depending on any particular seeded state, so it keeps working even if the seed data in `Main`/`MainApp` changes later.
 
 This mirrors the same Strategy-style thinking used for `Payment`/`Discountable` in §4: the presentation mechanism sits behind a stable layer boundary, so a future web frontend (see README's Future Enhancements) could be added the same way, without touching `service`, `model`, or `repository`.
 

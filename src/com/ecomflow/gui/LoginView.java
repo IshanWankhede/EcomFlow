@@ -91,25 +91,13 @@ public class LoginView {
         registerBtn.getStyleClass().add("btn-outline");
         registerBtn.setMaxWidth(Double.MAX_VALUE);
 
-        // Quick Demo Credentials Section
+        // Quick Demo Credentials — Admin only (customers register via RegisterView)
         VBox demoBox = new VBox(8);
         demoBox.setAlignment(Pos.CENTER);
         demoBox.setPadding(new Insets(10, 0, 0, 0));
 
-        Label demoLabel = new Label("Quick Demo Credentials:");
+        Label demoLabel = new Label("Quick sign-in (Admin):");
         demoLabel.getStyleClass().add("text-muted");
-
-        HBox demoChips = new HBox(10);
-        demoChips.setAlignment(Pos.CENTER);
-
-        Button fillCustomer = new Button("Customer Demo");
-        fillCustomer.getStyleClass().add("btn-chip");
-        fillCustomer.setOnAction(e -> {
-            emailField.setText("alice@ecomflow.com");
-            passField.setText("pass123");
-            emailErr.setVisible(false);
-            passErr.setVisible(false);
-        });
 
         Button fillAdmin = new Button("Admin Demo");
         fillAdmin.getStyleClass().add("btn-chip");
@@ -120,8 +108,7 @@ public class LoginView {
             passErr.setVisible(false);
         });
 
-        demoChips.getChildren().addAll(fillCustomer, fillAdmin);
-        demoBox.getChildren().addAll(demoLabel, demoChips);
+        demoBox.getChildren().addAll(demoLabel, fillAdmin);
 
         // Event Handlers with Inline Validation Check
         loginBtn.setOnAction(e -> {

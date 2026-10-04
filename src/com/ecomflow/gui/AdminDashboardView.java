@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import com.ecomflow.enums.OrderStatus;
+import com.ecomflow.exceptions.CustomerNotFoundException;
 import com.ecomflow.exceptions.InsufficientStockException;
 import com.ecomflow.exceptions.ProductNotFoundException;
 import com.ecomflow.model.Admin;
@@ -293,7 +294,7 @@ public class AdminDashboardView {
 
         // Subtype-specific dynamic field box
         VBox dynamicBox = new VBox(8);
-        TextField field1 = new TextField("LogiTech");
+        TextField field1 = new TextField("xyz");
         field1.setPromptText("Brand");
         TextField field2 = new TextField("24");
         field2.setPromptText("Warranty Months");
@@ -308,7 +309,7 @@ public class AdminDashboardView {
             if ("Electronics".equals(selectedType)) {
                 field1.setPromptText("Brand Name");
                 field2.setPromptText("Warranty Months");
-                field1.setText("SoundMax");
+                field1.setText("xyz");
                 field2.setText("12");
                 dynamicBox.getChildren().addAll(new Label("Brand:"), field1, new Label("Warranty Months:"), field2);
             } else if ("Clothing".equals(selectedType)) {
@@ -667,32 +668,74 @@ public class AdminDashboardView {
         custTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
         TableColumn<Customer, Number> idCol = new TableColumn<>("ID");
-        idCol.setPrefWidth(60);
+        idCol.setPrefWidth(50);
         idCol.setCellValueFactory(cellData -> new SimpleIntegerProperty(cellData.getValue().getUserId()));
 
         TableColumn<Customer, String> nameCol = new TableColumn<>("Customer Name");
-        nameCol.setPrefWidth(160);
+        nameCol.setPrefWidth(140);
         nameCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getName()));
 
         TableColumn<Customer, String> emailCol = new TableColumn<>("Email Address");
-        emailCol.setPrefWidth(200);
+        emailCol.setPrefWidth(180);
         emailCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getEmail()));
 
         TableColumn<Customer, String> phoneCol = new TableColumn<>("Phone");
-        phoneCol.setPrefWidth(120);
+        phoneCol.setPrefWidth(110);
         phoneCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getPhone()));
 
-        TableColumn<Customer, String> addrCol = new TableColumn<>("Shipping Address");
-        addrCol.setPrefWidth(220);
-        addrCol.setCellValueFactory(cellData -> new SimpleStringProperty(
-                cellData.getValue().getAddress() != null ? cellData.getValue().getAddress().toString() : "N/A"));
-
-        TableColumn<Customer, Number> ordersCol = new TableColumn<>("Total Orders");
-        ordersCol.setPrefWidth(90);
+        TableColumn<Customer, Number> ordersCol = new TableColumn<>("Orders");
+        ordersCol.setPrefWidth(70);
         ordersCol.setCellValueFactory(cellData -> new SimpleIntegerProperty(
                 cellData.getValue().getOrderHistory() != null ? cellData.getValue().getOrderHistory().size() : 0));
 
-        custTable.getColumns().addAll(idCol, nameCol, emailCol, phoneCol, addrCol, ordersCol);
+        // Delete action column — with confirmation dialog
+        TableColumn<Customer, Customer> deleteCol = new TableColumn<>("Action");
+        deleteCol.setPrefWidth(90);
+        deleteCol.setCellValueFactory(param -> new SimpleObjectProperty<>(param.getValue()));
+        deleteCol.setCellFactory(col -> new TableCell<>() {
+            private final Button delBtn = new Button("Delete");
+            {
+                delBtn.getStyleClass().add("btn-danger");
+                delBtn.setStyle("-fx-font-size: 11px; -fx-padding: 4px 8px;");
+                delBtn.setOnAction(e -> {
+                    Customer c = getItem();
+                    if (c == null) return;
+
+                    Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+                    confirm.setTitle("Delete Customer Account");
+                    confirm.setHeaderText("Delete '" + c.getName() + "' (" + c.getEmail() + ")?");
+                    confirm.setContentText(
+                            "Are you sure you want to delete this customer's account?\n" +
+                            "This cannot be undone.\n\n" +
+                            "Note: their past orders will be kept in the system.");
+
+                    confirm.showAndWait().ifPresent(btn -> {
+                        if (btn == javafx.scene.control.ButtonType.OK) {
+                            try {
+                                app.getAdminService().deleteCustomer(c.getEmail());
+                                GuiUtils.showInfo("Account Deleted",
+                                        "Customer '" + c.getName() + "' has been removed.\n" +
+                                        "Their order history remains in the system.");
+                                showCustomersView(); // refresh
+                            } catch (CustomerNotFoundException ex) {
+                                GuiUtils.showError("Delete Failed", ex.getMessage());
+                            } catch (Exception ex) {
+                                GuiUtils.showError("Unexpected Error", ex.getMessage());
+                            }
+                        }
+                    });
+                });
+            }
+
+            @Override
+            protected void updateItem(Customer c, boolean empty) {
+                super.updateItem(c, empty);
+                setGraphic(empty || c == null ? null : delBtn);
+                setAlignment(Pos.CENTER);
+            }
+        });
+
+        custTable.getColumns().addAll(idCol, nameCol, emailCol, phoneCol, ordersCol, deleteCol);
         custTable.setItems(FXCollections.observableArrayList(app.getAdminService().listAllCustomers()));
 
         content.getChildren().addAll(titleBox, custTable);

@@ -53,7 +53,7 @@ public class RegisterView {
         Label nameLabel = new Label("Full Name *");
         nameLabel.getStyleClass().add("label-field");
         TextField nameField = new TextField();
-        nameField.setPromptText("e.g. John Doe");
+        nameField.setPromptText("e.g. xyz");
         Label nameErr = new Label();
         nameErr.getStyleClass().add("error-text");
         nameErr.setVisible(false);
@@ -64,7 +64,7 @@ public class RegisterView {
         Label emailLabel = new Label("Email Address *");
         emailLabel.getStyleClass().add("label-field");
         TextField emailField = new TextField();
-        emailField.setPromptText("e.g. john@example.com");
+        emailField.setPromptText("e.g. xyz@gmail.com");
         Label emailErr = new Label();
         emailErr.getStyleClass().add("error-text");
         emailErr.setVisible(false);

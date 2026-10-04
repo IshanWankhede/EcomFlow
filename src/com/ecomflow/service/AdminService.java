@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.ecomflow.enums.OrderStatus;
+import com.ecomflow.exceptions.CustomerNotFoundException;
 import com.ecomflow.exceptions.ProductNotFoundException;
 import com.ecomflow.model.Customer;
 import com.ecomflow.model.Order;
@@ -49,5 +50,33 @@ public class AdminService {
 
     public void restockProduct(int productId, int quantity) throws ProductNotFoundException {
         inventoryService.addStock(productId, quantity);
+    }
+
+    /**
+     * Removes a customer account from the system.
+     *
+     * <p>Order history is intentionally PRESERVED: all orders placed by this customer
+     * remain in DataStore so the admin's order records stay complete. Only the
+     * Customer/User account entry itself is deleted (removed from usersByEmail and
+     * the usedEmails set in DataStore).</p>
+     *
+     * @param email the email address of the customer to delete
+     * @throws CustomerNotFoundException if no customer with that email exists,
+     *                                   or if the email belongs to a non-Customer user (e.g. Admin)
+     */
+    public void deleteCustomer(String email) throws CustomerNotFoundException {
+        if (email == null || email.trim().isEmpty()) {
+            throw new CustomerNotFoundException("Cannot delete customer: email must not be blank.");
+        }
+        User user = dataStore.getUserByEmail(email.trim());
+        if (user == null) {
+            throw new CustomerNotFoundException(
+                    "Cannot delete account: no user found with email '" + email + "'.");
+        }
+        if (!(user instanceof Customer)) {
+            throw new CustomerNotFoundException(
+                    "Cannot delete account with email '" + email + "': target is not a Customer account.");
+        }
+        dataStore.removeUser(email.trim());
     }
 }

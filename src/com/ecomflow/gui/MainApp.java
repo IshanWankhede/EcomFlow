@@ -2,7 +2,6 @@ package com.ecomflow.gui;
 
 import java.io.File;
 
-import com.ecomflow.model.Address;
 import com.ecomflow.model.Admin;
 import com.ecomflow.model.Category;
 import com.ecomflow.model.Clothing;
@@ -63,13 +62,7 @@ public class MainApp extends Application {
     }
 
     private void seedInitialData() {
-        // ── Demo Users ────────────────────────────────────────────────────────────
-        Address aliceAddr = new Address("42 Tech Boulevard", "Bengaluru", "Karnataka", "560001", "India");
-        authService.registerCustomer("Alice Johnson", "alice@ecomflow.com", "pass123", "+91 9876543210", aliceAddr);
-
-        Address bobAddr = new Address("7 Marine Drive", "Mumbai", "Maharashtra", "400001", "India");
-        authService.registerCustomer("Bob Smith", "bob@ecomflow.com", "pass456", "+91 9012345678", bobAddr);
-
+        // ── Demo Admin account (only system user seeded at startup) ───────────────
         authService.registerAdmin("System Administrator", "admin@ecomflow.com", "adminPass", "+91 9123456780");
 
         // ── Categories ────────────────────────────────────────────────────────────

@@ -544,7 +544,7 @@ public class CustomerDashboardView {
 
         // Payment Details Sub-form
         VBox paymentDetailBox = new VBox(8);
-        TextField upiField = new TextField("alice@okaxis");
+        TextField upiField = new TextField("xyz@okaxis");
         upiField.setPromptText("Enter UPI ID (e.g. user@bank)");
 
         TextField cardNumField = new TextField("4532789012345678");

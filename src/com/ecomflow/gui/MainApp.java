@@ -97,7 +97,7 @@ public class MainApp extends Application {
         this.primaryStage.setMinWidth(960);
         this.primaryStage.setMinHeight(640);
 
-        showLoginView();
+        showLandingView();
         this.primaryStage.show();
     }
 
@@ -122,6 +122,11 @@ public class MainApp extends Application {
                 scene.getStylesheets().add(resource.toExternalForm());
             }
         }
+    }
+
+    public void showLandingView() {
+        LandingView landingView = new LandingView(this);
+        setRoot(landingView.getView());
     }
 
     public void showLoginView() {

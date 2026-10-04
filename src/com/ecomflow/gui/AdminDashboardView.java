@@ -17,6 +17,7 @@ import com.ecomflow.model.Invoice;
 import com.ecomflow.model.Order;
 import com.ecomflow.model.Product;
 
+import javafx.animation.FadeTransition;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -25,6 +26,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.util.Duration;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -71,6 +73,32 @@ public class AdminDashboardView {
 
         // 2. Default initial view: Products Management
         showProductsView();
+    }
+
+    private void setCenterWithFade(Node content) {
+        Node current = rootPane.getCenter();
+        if (current == null) {
+            content.setOpacity(0.0);
+            rootPane.setCenter(content);
+            FadeTransition fadeIn = new FadeTransition(Duration.millis(200), content);
+            fadeIn.setFromValue(0.0);
+            fadeIn.setToValue(1.0);
+            fadeIn.play();
+            return;
+        }
+
+        FadeTransition fadeOut = new FadeTransition(Duration.millis(120), current);
+        fadeOut.setFromValue(1.0);
+        fadeOut.setToValue(0.0);
+        fadeOut.setOnFinished(e -> {
+            content.setOpacity(0.0);
+            rootPane.setCenter(content);
+            FadeTransition fadeIn = new FadeTransition(Duration.millis(200), content);
+            fadeIn.setFromValue(0.0);
+            fadeIn.setToValue(1.0);
+            fadeIn.play();
+        });
+        fadeOut.play();
     }
 
     private VBox buildSidebar() {
@@ -343,6 +371,7 @@ public class AdminDashboardView {
         Button addProductBtn = new Button("Add Product ➕");
         addProductBtn.getStyleClass().add("btn-primary");
         addProductBtn.setMaxWidth(Double.MAX_VALUE);
+        GuiUtils.attachHoverScale(addProductBtn);
 
         addProductBtn.setOnAction(e -> {
             String pName = nameIn.getText();
@@ -428,7 +457,7 @@ public class AdminDashboardView {
 
         layout.getChildren().addAll(table, addFormCard);
         content.getChildren().addAll(topBar, layout);
-        rootPane.setCenter(content);
+        setCenterWithFade(content);
     }
 
     // =========================================================================
@@ -531,7 +560,7 @@ public class AdminDashboardView {
 
         inventoryCard.getChildren().add(invTable);
         content.getChildren().addAll(titleBox, inventoryCard);
-        rootPane.setCenter(content);
+        setCenterWithFade(content);
     }
 
     // =========================================================================
@@ -562,7 +591,7 @@ public class AdminDashboardView {
             emptyMsg.getStyleClass().add("heading-md");
             emptyCard.getChildren().add(emptyMsg);
             content.getChildren().addAll(titleBox, emptyCard);
-            rootPane.setCenter(content);
+            setCenterWithFade(content);
             return;
         }
 
@@ -646,7 +675,7 @@ public class AdminDashboardView {
         ordersTable.setItems(FXCollections.observableArrayList(orders));
 
         content.getChildren().addAll(titleBox, ordersTable);
-        rootPane.setCenter(content);
+        setCenterWithFade(content);
     }
 
     // =========================================================================
@@ -717,7 +746,7 @@ public class AdminDashboardView {
                             try {
                                 app.getAdminService().deleteCustomer(c.getEmail());
                                 GuiUtils.showInfo("Account Deleted",
-                                        "Customer '" + c.getName() + "' has been removed.\n" +
+                                         "Customer '" + c.getName() + "' has been removed.\n" +
                                         "Their order history remains in the system.");
                                 showCustomersView(); // refresh
                             } catch (CustomerNotFoundException ex) {
@@ -742,7 +771,7 @@ public class AdminDashboardView {
         custTable.setItems(FXCollections.observableArrayList(app.getAdminService().listAllCustomers()));
 
         content.getChildren().addAll(titleBox, custTable);
-        rootPane.setCenter(content);
+        setCenterWithFade(content);
     }
 
     public Parent getView() {

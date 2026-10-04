@@ -20,6 +20,7 @@ import com.ecomflow.service.OrderService;
 import com.ecomflow.service.PaymentService;
 import com.ecomflow.service.ProductService;
 
+import javafx.animation.FadeTransition;
 import javafx.application.Application;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
@@ -28,6 +29,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 public class MainApp extends Application {
     private Stage primaryStage;
@@ -135,14 +137,42 @@ public class MainApp extends Application {
         this.primaryStage.show();
     }
 
-    public void setRoot(Parent rootNode) {
+    public void switchSceneWithFade(Parent newRoot) {
         if (mainScene == null) {
-            mainScene = new Scene(rootNode, 1000, 680);
+            newRoot.setOpacity(0.0);
+            mainScene = new Scene(newRoot, 1000, 680);
             applyStyles(mainScene);
             primaryStage.setScene(mainScene);
+
+            FadeTransition fadeIn = new FadeTransition(Duration.millis(200), newRoot);
+            fadeIn.setFromValue(0.0);
+            fadeIn.setToValue(1.0);
+            fadeIn.play();
         } else {
-            mainScene.setRoot(rootNode);
+            Parent currentRoot = mainScene.getRoot();
+            if (currentRoot == null || currentRoot == newRoot) {
+                mainScene.setRoot(newRoot);
+                return;
+            }
+
+            FadeTransition fadeOut = new FadeTransition(Duration.millis(150), currentRoot);
+            fadeOut.setFromValue(1.0);
+            fadeOut.setToValue(0.0);
+            fadeOut.setOnFinished(e -> {
+                newRoot.setOpacity(0.0);
+                mainScene.setRoot(newRoot);
+
+                FadeTransition fadeIn = new FadeTransition(Duration.millis(200), newRoot);
+                fadeIn.setFromValue(0.0);
+                fadeIn.setToValue(1.0);
+                fadeIn.play();
+            });
+            fadeOut.play();
         }
+    }
+
+    public void setRoot(Parent rootNode) {
+        switchSceneWithFade(rootNode);
     }
 
     private void applyStyles(Scene scene) {

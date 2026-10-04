@@ -21,6 +21,7 @@ import com.ecomflow.model.Product;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.ParallelTransition;
+import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -78,6 +79,32 @@ public class CustomerDashboardView {
 
         // 2. Default initial view: Browse Products
         showBrowseView();
+    }
+
+    private void setCenterWithFade(Node content) {
+        Node current = rootPane.getCenter();
+        if (current == null) {
+            content.setOpacity(0.0);
+            rootPane.setCenter(content);
+            FadeTransition fadeIn = new FadeTransition(Duration.millis(200), content);
+            fadeIn.setFromValue(0.0);
+            fadeIn.setToValue(1.0);
+            fadeIn.play();
+            return;
+        }
+
+        FadeTransition fadeOut = new FadeTransition(Duration.millis(120), current);
+        fadeOut.setFromValue(1.0);
+        fadeOut.setToValue(0.0);
+        fadeOut.setOnFinished(e -> {
+            content.setOpacity(0.0);
+            rootPane.setCenter(content);
+            FadeTransition fadeIn = new FadeTransition(Duration.millis(200), content);
+            fadeIn.setFromValue(0.0);
+            fadeIn.setToValue(1.0);
+            fadeIn.play();
+        });
+        fadeOut.play();
     }
 
     private VBox buildSidebar() {
@@ -297,7 +324,7 @@ public class CustomerDashboardView {
         scrollPane.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
 
         content.getChildren().addAll(topBar, scrollPane);
-        rootPane.setCenter(content);
+        setCenterWithFade(content);
     }
 
     // =========================================================================
@@ -330,10 +357,11 @@ public class CustomerDashboardView {
             Button shopBtn = new Button("Browse Catalog");
             shopBtn.getStyleClass().add("btn-primary");
             shopBtn.setOnAction(e -> showBrowseView());
+            GuiUtils.attachHoverScale(shopBtn);
 
             emptyCard.getChildren().addAll(emptyMsg, emptySub, shopBtn);
             content.getChildren().addAll(title, emptyCard);
-            rootPane.setCenter(content);
+            setCenterWithFade(content);
             return;
         }
 
@@ -452,10 +480,21 @@ public class CustomerDashboardView {
         totalVal.getStyleClass().add("price-tag");
         totalRow.getChildren().addAll(totalLabel, totalSpacer, totalVal);
 
+        // Price update pulse animation (Scale up then back to normal)
+        ScaleTransition pricePulse = new ScaleTransition(Duration.millis(150), totalVal);
+        pricePulse.setFromX(1.0);
+        pricePulse.setFromY(1.0);
+        pricePulse.setToX(1.15);
+        pricePulse.setToY(1.15);
+        pricePulse.setAutoReverse(true);
+        pricePulse.setCycleCount(2);
+        pricePulse.play();
+
         Button checkoutBtn = new Button("Proceed to Checkout ➡️");
         checkoutBtn.getStyleClass().add("btn-accent");
         checkoutBtn.setMaxWidth(Double.MAX_VALUE);
         checkoutBtn.setOnAction(e -> showCheckoutView());
+        GuiUtils.attachHoverScale(checkoutBtn);
 
         Button clearBtn = new Button("Clear Cart");
         clearBtn.getStyleClass().add("btn-outline");
@@ -464,6 +503,7 @@ public class CustomerDashboardView {
             app.getCartService().clearCart(cart);
             showCartView();
         });
+        GuiUtils.attachHoverScale(clearBtn);
 
         summaryCard.getChildren().addAll(
                 summaryTitle, subtotalRow, shippingRow, sep,
@@ -477,7 +517,7 @@ public class CustomerDashboardView {
 
         cartLayout.getChildren().addAll(itemsScroll, summaryCard);
         content.getChildren().addAll(title, cartLayout);
-        rootPane.setCenter(content);
+        setCenterWithFade(content);
     }
 
     // =========================================================================
@@ -506,10 +546,11 @@ public class CustomerDashboardView {
             Button shopBtn = new Button("Return to Catalog");
             shopBtn.getStyleClass().add("btn-primary");
             shopBtn.setOnAction(e -> showBrowseView());
+            GuiUtils.attachHoverScale(shopBtn);
 
             emptyCard.getChildren().addAll(emptyMsg, shopBtn);
             content.getChildren().addAll(title, emptyCard);
-            rootPane.setCenter(content);
+            setCenterWithFade(content);
             return;
         }
 
@@ -626,6 +667,7 @@ public class CustomerDashboardView {
 
         Button applyCouponBtn = new Button("Apply");
         applyCouponBtn.getStyleClass().add("btn-outline");
+        GuiUtils.attachHoverScale(applyCouponBtn);
         couponRow.getChildren().addAll(couponField, applyCouponBtn);
 
         Label couponStatus = new Label(activeCoupon.isEmpty() ? "Try 'SAVE10' or 'FLAT50'" : "Promo: " + activeCoupon);
@@ -676,6 +718,7 @@ public class CustomerDashboardView {
         Button placeOrderBtn = new Button("Place Order 🛒");
         placeOrderBtn.getStyleClass().add("btn-primary");
         placeOrderBtn.setMaxWidth(Double.MAX_VALUE);
+        GuiUtils.attachHoverScale(placeOrderBtn);
 
         placeOrderBtn.setOnAction(e -> {
             // Inline validation: pincode format
@@ -718,7 +761,7 @@ public class CustomerDashboardView {
 
         checkoutGrid.getChildren().addAll(formCard, reviewCard);
         content.getChildren().addAll(title, checkoutGrid);
-        rootPane.setCenter(content);
+        setCenterWithFade(content);
     }
 
     private void showOrderSuccessView(Invoice invoice) {
@@ -730,6 +773,24 @@ public class CustomerDashboardView {
         successCard.getStyleClass().add("card");
         successCard.setMaxWidth(620);
         successCard.setAlignment(Pos.CENTER);
+
+        // Animate Invoice Card entrance: Fade in (0 -> 1) + Scale up (0.95 -> 1.0)
+        successCard.setOpacity(0.0);
+        successCard.setScaleX(0.95);
+        successCard.setScaleY(0.95);
+
+        FadeTransition cardFade = new FadeTransition(Duration.millis(350), successCard);
+        cardFade.setFromValue(0.0);
+        cardFade.setToValue(1.0);
+
+        ScaleTransition cardScale = new ScaleTransition(Duration.millis(350), successCard);
+        cardScale.setFromX(0.95);
+        cardScale.setFromY(0.95);
+        cardScale.setToX(1.0);
+        cardScale.setToY(1.0);
+
+        ParallelTransition cardEntrance = new ParallelTransition(cardFade, cardScale);
+        cardEntrance.play();
 
         Label checkIcon = new Label("🎉");
         checkIcon.setStyle("-fx-font-size: 48px;");
@@ -751,16 +812,18 @@ public class CustomerDashboardView {
         Button viewOrdersBtn = new Button("View in Order History");
         viewOrdersBtn.getStyleClass().add("btn-primary");
         viewOrdersBtn.setOnAction(e -> showOrdersView());
+        GuiUtils.attachHoverScale(viewOrdersBtn);
 
         Button continueShopBtn = new Button("Continue Shopping");
         continueShopBtn.getStyleClass().add("btn-outline");
         continueShopBtn.setOnAction(e -> showBrowseView());
+        GuiUtils.attachHoverScale(continueShopBtn);
 
         actionRow.getChildren().addAll(viewOrdersBtn, continueShopBtn);
 
         successCard.getChildren().addAll(checkIcon, successTitle, orderNum, invoiceArea, actionRow);
         content.getChildren().add(successCard);
-        rootPane.setCenter(content);
+        setCenterWithFade(content);
     }
 
     // =========================================================================
@@ -792,10 +855,11 @@ public class CustomerDashboardView {
             Button shopBtn = new Button("Start Shopping");
             shopBtn.getStyleClass().add("btn-primary");
             shopBtn.setOnAction(e -> showBrowseView());
+            GuiUtils.attachHoverScale(shopBtn);
 
             emptyCard.getChildren().addAll(emptyMsg, emptySub, shopBtn);
             content.getChildren().addAll(title, emptyCard);
-            rootPane.setCenter(content);
+            setCenterWithFade(content);
             return;
         }
 
@@ -847,6 +911,7 @@ public class CustomerDashboardView {
 
             Button invoiceBtn = new Button("📄 Invoice");
             invoiceBtn.getStyleClass().add("btn-chip");
+            GuiUtils.attachHoverScale(invoiceBtn);
             invoiceBtn.setOnAction(e -> {
                 Invoice inv = new Invoice(order);
                 showInvoiceDialog(inv);
@@ -854,6 +919,7 @@ public class CustomerDashboardView {
 
             Button cancelBtn = new Button("Cancel Order");
             cancelBtn.getStyleClass().add("btn-danger-outline");
+            GuiUtils.attachHoverScale(cancelBtn);
             
             // Disable if delivered or already cancelled
             boolean canCancel = (order.getStatus() != OrderStatus.DELIVERED && order.getStatus() != OrderStatus.CANCELLED);
@@ -880,7 +946,7 @@ public class CustomerDashboardView {
         scrollPane.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
 
         content.getChildren().addAll(title, scrollPane);
-        rootPane.setCenter(content);
+        setCenterWithFade(content);
     }
 
     private void showInvoiceDialog(Invoice invoice) {
@@ -957,6 +1023,7 @@ public class CustomerDashboardView {
 
         Button saveBtn = new Button("Save Profile Changes");
         saveBtn.getStyleClass().add("btn-primary");
+        GuiUtils.attachHoverScale(saveBtn);
         saveBtn.setOnAction(e -> {
             customer.setPhone(phoneField.getText());
             Address newAddr = new Address(
@@ -979,7 +1046,7 @@ public class CustomerDashboardView {
         );
 
         content.getChildren().addAll(title, card);
-        rootPane.setCenter(content);
+        setCenterWithFade(content);
     }
 
     public Parent getView() {

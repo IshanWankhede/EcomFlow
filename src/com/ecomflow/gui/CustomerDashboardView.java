@@ -19,10 +19,14 @@ import com.ecomflow.model.Order;
 import com.ecomflow.model.OrderItem;
 import com.ecomflow.model.Product;
 
+import javafx.animation.FadeTransition;
+import javafx.animation.ParallelTransition;
+import javafx.animation.TranslateTransition;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.util.Duration;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -274,6 +278,19 @@ public class CustomerDashboardView {
         categoryFilter.setOnAction(e -> refreshCatalog.run());
 
         refreshCatalog.run();
+
+        // Subtle fade-in + upward slide animation (~400ms) on grid load
+        productGrid.setOpacity(0.0);
+        FadeTransition fadeIn = new FadeTransition(Duration.millis(400), productGrid);
+        fadeIn.setFromValue(0.0);
+        fadeIn.setToValue(1.0);
+
+        TranslateTransition slideUp = new TranslateTransition(Duration.millis(400), productGrid);
+        slideUp.setFromY(16.0);
+        slideUp.setToY(0.0);
+
+        ParallelTransition entranceAnimation = new ParallelTransition(fadeIn, slideUp);
+        entranceAnimation.play();
 
         ScrollPane scrollPane = new ScrollPane(productGrid);
         scrollPane.setFitToWidth(true);

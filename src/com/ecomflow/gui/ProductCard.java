@@ -5,6 +5,7 @@ import com.ecomflow.model.Electronics;
 import com.ecomflow.model.Grocery;
 import com.ecomflow.model.Product;
 
+import javafx.animation.ScaleTransition;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -14,6 +15,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.util.Duration;
 
 public class ProductCard extends VBox {
     private final Product product;
@@ -39,7 +41,7 @@ public class ProductCard extends VBox {
         imageContainer.setAlignment(Pos.CENTER);
         imageContainer.setPrefHeight(130);
 
-        // 2. Category & Subtype Badge
+        // 2. Category, Rating & Subtype Badge Row
         HBox badgeRow = new HBox(6);
         badgeRow.setAlignment(Pos.CENTER_LEFT);
 
@@ -47,7 +49,7 @@ public class ProductCard extends VBox {
         catBadge.getStyleClass().add("badge-category");
         badgeRow.getChildren().add(catBadge);
 
-        // Subtype-specific badge/info
+        // Subtype-specific badge
         if (product instanceof Electronics el) {
             Label brandBadge = new Label(el.getBrand());
             brandBadge.getStyleClass().add("badge-category");
@@ -57,6 +59,14 @@ public class ProductCard extends VBox {
             sizeBadge.getStyleClass().add("badge-category");
             badgeRow.getChildren().add(sizeBadge);
         }
+
+        Region badgeSpacer = new Region();
+        HBox.setHgrow(badgeSpacer, Priority.ALWAYS);
+
+        // Static Rating Element (4.8 ★)
+        Label ratingLabel = new Label("★ 4.8");
+        ratingLabel.getStyleClass().add("rating-badge");
+        badgeRow.getChildren().addAll(badgeSpacer, ratingLabel);
 
         // 3. Product Title
         Label nameLabel = new Label(product.getName());
@@ -101,9 +111,9 @@ public class ProductCard extends VBox {
         Region spacer = new Region();
         VBox.setVgrow(spacer, Priority.ALWAYS);
 
-        // 7. Add to Cart Button
+        // 7. Add to Cart Button (Solid --cta-black)
         Button addBtn = new Button(product.getStock() > 0 ? "Add to Cart 🛒" : "Out of Stock");
-        addBtn.getStyleClass().add("btn-accent");
+        addBtn.getStyleClass().add("btn-cta");
         addBtn.setMaxWidth(Double.MAX_VALUE);
         addBtn.setDisable(product.getStock() <= 0);
 
@@ -112,6 +122,9 @@ public class ProductCard extends VBox {
                 onAddToCartCallback.run();
             }
         });
+
+        // 8. Card Hover Animation (ScaleTransition ~1.02x)
+        attachCardHoverAnimation();
 
         getChildren().addAll(
                 imageContainer,
@@ -123,6 +136,26 @@ public class ProductCard extends VBox {
                 spacer,
                 addBtn
         );
+    }
+
+    private void attachCardHoverAnimation() {
+        ScaleTransition scaleUp = new ScaleTransition(Duration.millis(150), this);
+        scaleUp.setToX(1.02);
+        scaleUp.setToY(1.02);
+
+        ScaleTransition scaleDown = new ScaleTransition(Duration.millis(150), this);
+        scaleDown.setToX(1.0);
+        scaleDown.setToY(1.0);
+
+        setOnMouseEntered(e -> {
+            scaleDown.stop();
+            scaleUp.playFromStart();
+        });
+
+        setOnMouseExited(e -> {
+            scaleUp.stop();
+            scaleDown.playFromStart();
+        });
     }
 
     private String getSpecText() {

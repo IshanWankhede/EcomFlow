@@ -16,6 +16,7 @@
 package com.ecomflow;
 
 import java.io.File;
+import java.util.List;
 import javax.imageio.ImageIO;
 
 import com.ecomflow.gui.AdminDashboardView;
@@ -23,16 +24,20 @@ import com.ecomflow.gui.CustomerDashboardView;
 import com.ecomflow.gui.LoginView;
 import com.ecomflow.gui.MainApp;
 import com.ecomflow.gui.RegisterView;
+import com.ecomflow.model.Address;
 import com.ecomflow.model.Admin;
 import com.ecomflow.model.Customer;
+import com.ecomflow.model.Product;
 
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
+import javafx.animation.PauseTransition;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.WritableImage;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 public class CaptureScreenshots extends Application {
     private MainApp app;
@@ -52,65 +57,81 @@ public class CaptureScreenshots extends Application {
                 captureAll();
             } catch (Exception e) {
                 e.printStackTrace();
-            } finally {
                 Platform.exit();
             }
         });
     }
 
-    private void captureAll() throws Exception {
-        Customer sampleCustomer = (Customer) app.getDataStore().getUserByEmail("alice@ecomflow.com");
+    private void captureAll() {
+        Customer sampleCustomer = app.getAuthService().registerCustomer(
+                "xyz", "xyz@gmail.com", "xyz", "0000000000",
+                new Address("123 xyz street", "xyz city", "xyz state", "00000", "India"));
         Admin sampleAdmin = (Admin) app.getDataStore().getUserByEmail("admin@ecomflow.com");
+        List<Product> products = app.getProductService().getAllProducts();
+        if (products.size() < 2) {
+            throw new IllegalStateException("At least two catalog products are required to capture screenshots.");
+        }
 
-        // 1. Login Screen
-        saveSnapshot(new LoginView(app, app.getAuthService()).getView(), "login_screen.png");
-
-        // 2. Register Screen
-        saveSnapshot(new RegisterView(app, app.getAuthService()).getView(), "register_screen.png");
-
-        // 3. Customer Dashboard Views
         CustomerDashboardView custDash = new CustomerDashboardView(app, sampleCustomer);
-        
-        custDash.showBrowseView();
-        saveSnapshot(custDash.getView(), "customer_browse.png");
-
-        // Add 2 items to cart and snapshot Cart
-        app.getCartService().addItem(sampleCustomer.getCart(), app.getProductService().getProductById(5001), 1);
-        app.getCartService().addItem(sampleCustomer.getCart(), app.getProductService().getProductById(5004), 2);
-        
-        custDash.showCartView();
-        saveSnapshot(custDash.getView(), "customer_cart.png");
-
-        custDash.showCheckoutView();
-        saveSnapshot(custDash.getView(), "customer_checkout.png");
-
-        // Place an order to generate history
-        app.getOrderService().placeOrder(sampleCustomer.getCart(), "SAVE10", "UPI");
-
-        custDash.showOrdersView();
-        saveSnapshot(custDash.getView(), "customer_orders.png");
-
-        custDash.showProfileView();
-        saveSnapshot(custDash.getView(), "customer_profile.png");
-
-        // 4. Admin Dashboard Views
         AdminDashboardView adminDash = new AdminDashboardView(app, sampleAdmin);
 
-        adminDash.showProductsView();
-        saveSnapshot(adminDash.getView(), "admin_products.png");
+        List<CaptureStep> steps = List.of(
+                () -> saveSnapshot(new LoginView(app, app.getAuthService()).getView(), "login_screen.png"),
+                () -> saveSnapshot(new RegisterView(app, app.getAuthService()).getView(), "register_screen.png"),
+                custDash::showBrowseView,
+                () -> saveSnapshot(custDash.getView(), "customer_browse.png"),
+                () -> {
+                    app.getCartService().addItem(sampleCustomer.getCart(), products.get(0), 1);
+                    app.getCartService().addItem(sampleCustomer.getCart(), products.get(1), 2);
+                    custDash.showCartView();
+                },
+                () -> saveSnapshot(custDash.getView(), "customer_cart.png"),
+                custDash::showCheckoutView,
+                () -> saveSnapshot(custDash.getView(), "customer_checkout.png"),
+                () -> app.getOrderService().placeOrder(
+                        sampleCustomer.getCart(), "SAVE10", "UPI",
+                        new Address("123 xyz street", "xyz city", "xyz state", "00000", "India")),
+                custDash::showOrdersView,
+                () -> saveSnapshot(custDash.getView(), "customer_orders.png"),
+                custDash::showProfileView,
+                () -> saveSnapshot(custDash.getView(), "customer_profile.png"),
+                adminDash::showProductsView,
+                () -> saveSnapshot(adminDash.getView(), "admin_products.png"),
+                adminDash::showInventoryView,
+                () -> saveSnapshot(adminDash.getView(), "admin_inventory.png"),
+                adminDash::showOrdersView,
+                () -> saveSnapshot(adminDash.getView(), "admin_orders.png"),
+                adminDash::showCustomersView,
+                () -> saveSnapshot(adminDash.getView(), "admin_customers.png")
+        );
+        runCaptureStep(steps, 0);
+    }
 
-        adminDash.showInventoryView();
-        saveSnapshot(adminDash.getView(), "admin_inventory.png");
+    private void runCaptureStep(List<CaptureStep> steps, int index) {
+        if (index >= steps.size()) {
+            System.out.println("====================================================================");
+            System.out.println("ALL SCREENSHOTS SUCCESSFULLY SAVED TO resources/images/screenshots/!");
+            System.out.println("====================================================================");
+            Platform.exit();
+            return;
+        }
 
-        adminDash.showOrdersView();
-        saveSnapshot(adminDash.getView(), "admin_orders.png");
+        PauseTransition waitForLayout = new PauseTransition(Duration.millis(350));
+        waitForLayout.setOnFinished(event -> {
+            try {
+                steps.get(index).run();
+                runCaptureStep(steps, index + 1);
+            } catch (Exception e) {
+                e.printStackTrace();
+                Platform.exit();
+            }
+        });
+        waitForLayout.play();
+    }
 
-        adminDash.showCustomersView();
-        saveSnapshot(adminDash.getView(), "admin_customers.png");
-
-        System.out.println("====================================================================");
-        System.out.println("ALL SCREENSHOTS SUCCESSFULLY SAVED TO resources/images/screenshots/!");
-        System.out.println("====================================================================");
+    @FunctionalInterface
+    private interface CaptureStep {
+        void run() throws Exception;
     }
 
     private void saveSnapshot(Parent root, String filename) throws Exception {

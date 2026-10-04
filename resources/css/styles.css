@@ -523,3 +523,76 @@
     -fx-background-color: #F9FAFB;
     -fx-padding: 12px;
 }
+
+/* ==================== Dark Split-Panel Auth Styling ==================== */
+
+.split-auth-container {
+    -fx-background-color: #0B0B0F;
+}
+
+.auth-right-panel {
+    -fx-background-color: #15151C;
+    -fx-border-color: #232330;
+    -fx-border-width: 0 0 0 1px;
+}
+
+.dark-label {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #F5F5F7;
+}
+
+.dark-text-input {
+    -fx-background-color: #0B0B0F;
+    -fx-text-fill: #F5F5F7;
+    -fx-prompt-text-fill: #6B7280;
+    -fx-border-color: #2E2E3E;
+    -fx-border-width: 1.5px;
+    -fx-background-radius: 12px;
+    -fx-border-radius: 12px;
+    -fx-padding: 11px 14px;
+    -fx-font-size: 14px;
+}
+
+.dark-text-input:focused {
+    -fx-border-color: #FF6B35;
+    -fx-effect: dropshadow(gaussian, rgba(255, 107, 53, 0.3), 10, 0.2, 0, 0);
+}
+
+.dark-input-error {
+    -fx-border-color: #EF4444 !important;
+    -fx-effect: dropshadow(gaussian, rgba(239, 68, 68, 0.35), 8, 0.2, 0, 0) !important;
+}
+
+.auth-switch-link {
+    -fx-background-color: transparent;
+    -fx-text-fill: #9CA3AF;
+    -fx-font-size: 13px;
+    -fx-padding: 6px;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+}
+
+.auth-switch-link:hover {
+    -fx-text-fill: #FF6B35;
+}
+
+.auth-demo-btn {
+    -fx-background-color: #1F1F2B;
+    -fx-text-fill: #9CA3AF;
+    -fx-border-color: #2E2E3E;
+    -fx-border-width: 1px;
+    -fx-padding: 6px 14px;
+    -fx-font-size: 12px;
+    -fx-font-weight: normal;
+    -fx-background-radius: 8px;
+    -fx-border-radius: 8px;
+    -fx-cursor: hand;
+}
+
+.auth-demo-btn:hover {
+    -fx-background-color: #2B2B3C;
+    -fx-text-fill: #F5F5F7;
+    -fx-border-color: #FF6B35;
+}
+

@@ -132,11 +132,19 @@ public class GuiUtils {
         return badge;
     }
 
+    private static void styleDialog(Alert alert) {
+        File cssFile = new File("resources/css/styles.css");
+        if (cssFile.exists()) {
+            alert.getDialogPane().getStylesheets().add(cssFile.toURI().toString());
+        }
+    }
+
     public static void showError(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title != null ? title : "Error");
         alert.setHeaderText(null);
         alert.setContentText(message);
+        styleDialog(alert);
         alert.showAndWait();
     }
 
@@ -149,6 +157,7 @@ public class GuiUtils {
         alert.setTitle(title != null ? title : "Information");
         alert.setHeaderText(null);
         alert.setContentText(message);
+        styleDialog(alert);
         alert.showAndWait();
     }
 

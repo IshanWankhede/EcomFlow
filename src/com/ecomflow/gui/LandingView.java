@@ -34,44 +34,10 @@ public class LandingView {
         // Base dark container
         rootPane.setStyle("-fx-background-color: #0B0B0F;");
 
-        // ── 1. Animated Gradient Region ─────────────────────────────────────
-        Region animatedBg = new Region();
+        // ── 1. Animated Gradient Region (reusable component) ────────────────
+        AnimatedGradientBackground animatedBg = new AnimatedGradientBackground();
         animatedBg.prefWidthProperty().bind(rootPane.widthProperty());
         animatedBg.prefHeightProperty().bind(rootPane.heightProperty());
-
-        // Timeline to continuously interpolate the linear gradient
-        DoubleProperty gradientProgress = new SimpleDoubleProperty(0.0);
-        gradientProgress.addListener((obs, oldVal, newVal) -> {
-            double t = newVal.doubleValue();
-            
-            // Interpolate colors derived from --gradient-hero (#1a0533 -> #6B21E8 -> #0B0B0F)
-            int r1 = (int) (15 + (35 - 15) * t);
-            int g1 = (int) (2 + (10 - 2) * t);
-            int b1 = (int) (35 + (65 - 35) * t);
-
-            int r2 = (int) (65 + (130 - 65) * t);
-            int g2 = (int) (15 + (45 - 15) * t);
-            int b2 = (int) (180 + (245 - 180) * t);
-
-            int angle = (int) (125 + 35 * Math.sin(t * Math.PI));
-            int stop1 = (int) (15 + 15 * t);
-            int stop2 = (int) (50 + 20 * Math.cos(t * Math.PI));
-
-            String gradStyle = String.format(
-                "-fx-background-color: linear-gradient(from 0%% 0%% to 100%% 100%%, #0B0B0F 0%%, rgb(%d,%d,%d) %d%%, rgb(%d,%d,%d) %d%%, #0B0B0F 100%%);",
-                r1, g1, b1, stop1,
-                r2, g2, b2, stop2
-            );
-            animatedBg.setStyle(gradStyle);
-        });
-
-        backgroundTimeline = new Timeline(
-            new KeyFrame(Duration.ZERO, new KeyValue(gradientProgress, 0.0)),
-            new KeyFrame(Duration.seconds(6), new KeyValue(gradientProgress, 1.0))
-        );
-        backgroundTimeline.setAutoReverse(true);
-        backgroundTimeline.setCycleCount(Animation.INDEFINITE);
-        backgroundTimeline.play();
 
         // ── 2. Subtle Dark Glow / Overlay ───────────────────────────────────
         Region overlay = new Region();

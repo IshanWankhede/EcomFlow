@@ -60,7 +60,36 @@ public class MainApp extends Application {
         this.customerService = new CustomerService(dataStore);
         this.adminService = new AdminService(dataStore, orderService, inventoryService);
 
+        loadCustomFonts();
         seedInitialData();
+    }
+
+    private void loadCustomFonts() {
+        String[] fontResources = {
+            "/fonts/Sora-Regular.ttf",
+            "/fonts/Sora-Bold.ttf",
+            "/fonts/Sora-SemiBold.ttf",
+            "/fonts/Sora-Variable.ttf",
+            "/fonts/SpaceGrotesk-Regular.ttf",
+            "/fonts/SpaceGrotesk-Medium.ttf",
+            "/fonts/SpaceGrotesk-Bold.ttf"
+        };
+        for (String resPath : fontResources) {
+            try {
+                var stream = getClass().getResourceAsStream(resPath);
+                if (stream != null) {
+                    javafx.scene.text.Font.loadFont(stream, 14);
+                } else {
+                    File file = new File("resources" + resPath);
+                    if (file.exists()) {
+                        try (var fis = new java.io.FileInputStream(file)) {
+                            javafx.scene.text.Font.loadFont(fis, 14);
+                        }
+                    }
+                }
+            } catch (Exception ignored) {
+            }
+        }
     }
 
     private void seedInitialData() {

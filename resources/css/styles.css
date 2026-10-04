@@ -12,7 +12,7 @@
    ========================================================================== */
 
 .root {
-    -fx-font-family: 'Segoe UI', 'Inter', -apple-system, sans-serif;
+    -fx-font-family: 'Sora', 'Space Grotesk', 'Segoe UI', -apple-system, sans-serif;
     -fx-font-size: 14px;
     -fx-background-color: #FAFAFA;
     -fx-text-fill: #111111;
@@ -599,4 +599,31 @@
     -fx-text-fill: #F5F5F7;
     -fx-border-color: #FF6B35;
 }
+
+/* ==================== Hero & Landing Styles ==================== */
+
+.hero-headline {
+    -fx-font-family: 'Sora', 'Space Grotesk', sans-serif;
+    -fx-font-size: 48px;
+    -fx-font-weight: 800;
+    -fx-text-fill: #F5F5F7;
+}
+
+.hero-subheading {
+    -fx-font-family: 'Sora', 'Space Grotesk', sans-serif;
+    -fx-font-size: 15px;
+    -fx-text-fill: #9CA3AF;
+}
+
+.hero-badge {
+    -fx-background-color: rgba(107, 33, 232, 0.20);
+    -fx-text-fill: #C084FC;
+    -fx-border-color: rgba(168, 85, 247, 0.45);
+    -fx-border-radius: 20px;
+    -fx-background-radius: 20px;
+    -fx-padding: 6px 16px;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
 
